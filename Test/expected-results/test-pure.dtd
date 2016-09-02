@@ -1,23 +1,4 @@
 
-<!--
-DTD 
-Edition: Version 2.6.0. Last updated on
-	20th January 2014, revision 12802
-Edition Location: http://www.tei-c.org/Vault/P5/Version 2.6.0/
-
--->
-
-<!-- start datatypes -->
-
-<!-- end datatypes -->
-
-<!-- start predeclared patterns -->
-
-<!-- end predeclared patterns -->
-
-<!-- start rest of patterns -->
-
-<!-- end patterns -->
 
 <!-- start classes -->
 
@@ -25,14 +6,40 @@ Edition Location: http://www.tei-c.org/Vault/P5/Version 2.6.0/
 
 <!-- start elements -->
 
-<!--doc:élément textuel du schéma simplissime (peut contenir des bobs)  -->
-<!ELEMENT bit (#PCDATA | bob)*>
-<!--doc:élément pointeur du schéma simplissime -->
+<!--doc:mixed content, text or one element -->
+<!ELEMENT bit (#PCDATA|bob)*>
+<!--doc:empty element with attribute -->
 <!ELEMENT bob  EMPTY>
 <!ATTLIST bob
 href CDATA #IMPLIED >
-<!--doc:élément racine d'un schéma simplissime -->
+<!--doc:dummy -->
+<!ELEMENT choice  EMPTY>
+<!--doc:dummy -->
+<!ELEMENT orgName  EMPTY>
+<!--doc:dummy -->
+<!ELEMENT persName  EMPTY>
+<!--doc:dummy -->
+<!ELEMENT seg  EMPTY>
+<!--doc:simple elements -->
 <!ELEMENT stuff (bit|bob|thingummy)+>
-<!--doc:élément  -->
+<!--doc:mixed content with multiple elements -->
+<!ELEMENT t1 (#PCDATA|bit|bob|t1)*>
+<!--doc:mixed content with *Occurs -->
+<!ELEMENT t2 (#PCDATA|bit|bob)*>
+<!--doc:mixed content with only minOccurs -->
+<!ELEMENT t3 (#PCDATA|bit|bob)*>
+<!--doc:mixed content with only maxOccurs -->
+<!ELEMENT t4 (#PCDATA|bit|bob|t1)*>
+<!--doc:sequence within alternation  -->
+<!ELEMENT t5 (#PCDATA|bit|bob)*>
+<!--doc:sequence with textNode -->
+<!ELEMENT t6 (#PCDATA|bit|bob)*>
+<!--doc:sequence of elements -->
+<!ELEMENT t7 (((orgName)?,(persName)?,(choice)?,(seg)?,(trait)?))>
+<!--doc:sequence with textnode, and minOccurs on elements -->
+<!ELEMENT t8 (#PCDATA|orgName|persName|choice|seg|trait)*>
+<!--doc:element with just text  -->
 <!ELEMENT thingummy (#PCDATA)>
+<!--doc:dummy -->
+<!ELEMENT trait  EMPTY>
 <!-- end elements -->

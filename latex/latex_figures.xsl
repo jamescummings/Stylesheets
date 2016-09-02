@@ -19,7 +19,7 @@ Unported License http://creativecommons.org/licenses/by-sa/3.0/
 
 2. http://www.opensource.org/licenses/BSD-2-Clause
 		
-All rights reserved.
+
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -45,7 +45,7 @@ theory of liability, whether in contract, strict liability, or tort
 of this software, even if advised of the possibility of such damage.
 </p>
          <p>Author: See AUTHORS</p>
-         <p>Id: $Id$</p>
+         
          <p>Copyright: 2013, TEI Consortium</p>
       </desc>
    </doc>
@@ -148,7 +148,7 @@ of this software, even if advised of the possibility of such damage.
       <xsl:apply-templates/>
       <xsl:if test="following-sibling::tei:row">
          <xsl:text>\\</xsl:text>
-         <xsl:if test="@role='label' or parent::tei:table/@rend='rules'">\hline </xsl:if>
+         <xsl:if test="@role='label' or parent::tei:table/tei:match(@rend,'rules')">\hline </xsl:if>
          <xsl:text>&#10;</xsl:text>
       </xsl:if>
   </xsl:template>
@@ -180,16 +180,16 @@ of this software, even if advised of the possibility of such damage.
       </xsl:choose>
   </xsl:template>
   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl">
-      <desc>Process element table[@rend='display']</desc>
+      <desc>Process element table[tei:match(@rend,'display')]</desc>
    </doc>
-  <xsl:template match="tei:table[@rend='display']" mode="xref">
+  <xsl:template match="tei:table[tei:match(@rend,'display')]" mode="xref">
       <xsl:text>Table </xsl:text>
-      <xsl:number count="tei:table[@rend='display']" level="any"/>
+      <xsl:number count="tei:table[tei:match(@rend,'display')]" level="any"/>
   </xsl:template>
   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl">
-      <desc>Process element table[@rend='display']</desc>
+      <desc>Process element table[tei:match(@rend,'display')]</desc>
    </doc>
-  <xsl:template match="tei:table[@rend='display']">
+  <xsl:template match="tei:table[tei:match(@rend,'display')]">
       <xsl:text>\begin{table}</xsl:text>
       <xsl:text>\begin{center} \begin{small} \begin{tabular}</xsl:text>
       <xsl:call-template name="makeTable"/> 
@@ -210,12 +210,12 @@ of this software, even if advised of the possibility of such damage.
 	<xsl:when test="@place='inline' and tei:head">
             <xsl:text>\begin{figure}[H]&#10;</xsl:text>
 	</xsl:when>
-	<xsl:when test="@rend='display' or not(@place='inline') or tei:head or tei:p">
+	<xsl:when test="tei:match(@rend,'display') or not(@place='inline') or tei:head or tei:p">
 	  <xsl:text>\begin{figure}[htbp]&#10;</xsl:text>
 	</xsl:when>
       </xsl:choose>
       <xsl:choose>
-	<xsl:when test="@rend='center'">
+	<xsl:when test="tei:match(@rend,'center')">
 	  <xsl:text>\begin{center}</xsl:text>
 	</xsl:when>
 	<xsl:otherwise>\noindent</xsl:otherwise>
@@ -235,14 +235,14 @@ of this software, even if advised of the possibility of such damage.
             <xsl:text>}</xsl:text>
          </xsl:when>
       </xsl:choose>
-      <xsl:if test="@rend='center'">
+      <xsl:if test="tei:match(@rend,'center')">
             <xsl:text>\end{center}</xsl:text>
       </xsl:if>
       <xsl:choose>
 	<xsl:when test="@place='inline' and tei:head">
             <xsl:text>\end{figure}&#10;</xsl:text>
 	</xsl:when>
-         <xsl:when test="@rend='display' or not(@place='inline')">
+         <xsl:when test="tei:match(@rend,'display') or not(@place='inline')">
 	   <xsl:text>\end{figure}&#10;</xsl:text>
          </xsl:when>
       </xsl:choose>
@@ -253,33 +253,61 @@ of this software, even if advised of the possibility of such damage.
   <xsl:template name="makePic">
     <xsl:sequence select="tei:makeHyperTarget(@xml:id)"/>
       <xsl:choose>
-	<xsl:when test="@rend='noindent'">
+	<xsl:when test="tei:match(@rend,'noindent')">
 	  <xsl:text>\noindent</xsl:text>
 	</xsl:when>
 	<xsl:when test="not(preceding-sibling::*)">
 	  <xsl:text>\noindent</xsl:text>
 	</xsl:when>
       </xsl:choose>
-      <xsl:text>\includegraphics[</xsl:text>
-      <xsl:call-template name="graphicsAttributes">
-         <xsl:with-param name="mode">latex</xsl:with-param>
-      </xsl:call-template>
-      <xsl:text>]{</xsl:text>
+      <xsl:variable name="pic">
+	<xsl:text>\includegraphics[</xsl:text>
+	<xsl:call-template name="graphicsAttributes">
+          <xsl:with-param name="mode">latex</xsl:with-param>
+	</xsl:call-template>
+	<xsl:text>]{</xsl:text>
+	<xsl:choose>
+          <xsl:when test="$realFigures='true'">
+	    <xsl:sequence select="tei:resolveURI(.,@url)"/>
+          </xsl:when>
+          <xsl:otherwise>
+	    <xsl:variable name="F">
+	      <xsl:sequence select="tei:resolveURI(.,@url)"/>
+	    </xsl:variable>
+	    <xsl:text>Pictures/resource</xsl:text>
+	    <xsl:number level="any"/>
+	    <xsl:text>.</xsl:text>
+	    <xsl:value-of select="tokenize($F,'\.')[last()]"/>
+          </xsl:otherwise>
+	</xsl:choose>
+	<xsl:text>}</xsl:text>
+      </xsl:variable>
       <xsl:choose>
-         <xsl:when test="$realFigures='true'">
-	   <xsl:sequence select="tei:resolveURI(.,@url)"/>
-         </xsl:when>
-         <xsl:otherwise>
-	   <xsl:variable name="F">
-	     <xsl:sequence select="tei:resolveURI(.,@url)"/>
-	   </xsl:variable>
-	   <xsl:text>Pictures/resource</xsl:text>
-	   <xsl:number level="any"/>
-	   <xsl:text>.</xsl:text>
-	   <xsl:value-of select="tokenize($F,'\.')[last()]"/>
-         </xsl:otherwise>
+	<xsl:when test="parent::tei:ref">
+	  <xsl:value-of select="$pic"/>
+	</xsl:when>
+	<xsl:when test="not
+			(following-sibling::tei:graphic[tei:match(@rend,'alignright')])
+			and tei:match(@rend,'alignright')">
+	  <xsl:text>\begin{wrapfigure}{r}{</xsl:text>
+	  <xsl:value-of select="@width"/>
+	  <xsl:text>}</xsl:text>
+	  <xsl:value-of select="$pic"/>
+	  <xsl:text>\end{wrapfigure}</xsl:text>
+	</xsl:when>
+	<xsl:when test="not (following-sibling::tei:graphic[tei:match(@rend,'alignleft')])
+			and tei:match(@rend,'alignleft')">
+	  <xsl:text>\begin{wrapfigure}{l}{</xsl:text>
+	  <xsl:value-of select="@width"/>
+	  <xsl:text>}</xsl:text>
+	  <xsl:value-of select="$pic"/>
+	  <xsl:text>\end{wrapfigure}</xsl:text>
+	</xsl:when>
+	<xsl:otherwise>
+	  <xsl:value-of select="$pic"/>
+	</xsl:otherwise>
+
       </xsl:choose>
-      <xsl:text>}</xsl:text>
   </xsl:template>
   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl">
       <desc>[latex] </desc>
@@ -305,7 +333,7 @@ of this software, even if advised of the possibility of such damage.
 	<xsl:call-template name="tableHline"/>
       </xsl:if>
       <xsl:choose>
-         <xsl:when test="tei:head and not(@rend='display')">
+         <xsl:when test="tei:head and not(tei:match(@rend,'display'))">
             <xsl:if test="not(ancestor::tei:table or $longtables='false')">
                <xsl:text>\endfirsthead </xsl:text>
                <xsl:text>\multicolumn{</xsl:text>
@@ -329,7 +357,7 @@ of this software, even if advised of the possibility of such damage.
 
    <xsl:template name="tableHline">
       <xsl:choose>
-         <xsl:when test="ancestor::tei:table or $longtables='false' or @rend='display'"> \hline </xsl:when>
+         <xsl:when test="ancestor::tei:table or $longtables='false' or tei:match(@rend,'display')"> \hline </xsl:when>
          <xsl:otherwise> \hline\endfoot\hline\endlastfoot </xsl:otherwise>
       </xsl:choose>
    </xsl:template>

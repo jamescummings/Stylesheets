@@ -27,7 +27,7 @@ Unported License http://creativecommons.org/licenses/by-sa/3.0/
 
 2. http://www.opensource.org/licenses/BSD-2-Clause
 		
-All rights reserved.
+
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -53,7 +53,7 @@ theory of liability, whether in contract, strict liability, or tort
 of this software, even if advised of the possibility of such damage.
 </p>
          <p>Author: See AUTHORS</p>
-         <p>Id: $Id$</p>
+         
          <p>Copyright: 2013, TEI Consortium</p>
       </desc>
    </doc>
@@ -167,45 +167,47 @@ of this software, even if advised of the possibility of such damage.
     <xsl:param name="auto"/>
     <xsl:call-template name="makeLang"/>
     <xsl:choose>
-      <xsl:when test="(self::tei:q or self::tei:said or
-		      self::tei:quote) and (@rend='inline' or
-		      @rend='display') and
-		      not(@rendition) and not(key('TAGREND',local-name(.)))">
-	<xsl:sequence select="tei:processClass(local-name(),'')"/>
+      <xsl:when
+        test="
+          (self::tei:q or self::tei:said or
+          self::tei:quote) and (tei:match(@rend, 'inline') or
+          tei:match(@rend, 'display')) and
+          not(@rendition) and not(key('TAGREND', local-name(.)))">
+        <xsl:sequence select="tei:processClass(local-name(), '')"/>
       </xsl:when>
       <xsl:when test="@rend">
-	<xsl:sequence select="tei:processRend(@rend,$auto,.)"/>
+        <xsl:sequence select="tei:processRend(@rend, $auto, .)"/>
       </xsl:when>
       <xsl:when test="@rendition or @style">
-	<xsl:for-each select="@rendition">
-	  <xsl:sequence select="tei:processRendition(.,$auto)"/>
-	</xsl:for-each>
-	<xsl:for-each select="@style">
-	  <xsl:sequence select="tei:processStyle(.)"/>
-	</xsl:for-each>
+        <xsl:for-each select="@rendition">
+          <xsl:sequence select="tei:processRendition(., $auto)"/>
+        </xsl:for-each>
+        <xsl:for-each select="@style">
+          <xsl:sequence select="tei:processStyle(.)"/>
+        </xsl:for-each>
       </xsl:when>
-      <xsl:when test="key('TAGREND',local-name(.))">
-	<xsl:for-each select="key('TAGREND',local-name(.))">
-	  <xsl:sequence select="tei:processRendition(@render,$auto)"/>
-	</xsl:for-each>
+      <xsl:when test="key('TAGREND', local-name(.))">
+        <xsl:for-each select="key('TAGREND', local-name(.))">
+          <xsl:sequence select="tei:processRendition(@render, $auto)"/>
+        </xsl:for-each>
       </xsl:when>
-      <xsl:when test="$default='false'"/>
-      <xsl:when test="not($default='')">
-	  <xsl:sequence select="tei:processClass($default,$auto)"/>
+      <xsl:when test="$default = 'false'"/>
+      <xsl:when test="not($default = '')">
+        <xsl:sequence select="tei:processClass($default, $auto)"/>
       </xsl:when>
       <xsl:when test="parent::tei:item/parent::tei:list[@rend]">
-	  <xsl:sequence select="tei:processClass(parent::tei:item/parent::tei:list/@rend,$auto)"/>
+        <xsl:sequence select="tei:processClass(parent::tei:item/parent::tei:list/@rend, $auto)"/>
       </xsl:when>
       <xsl:when test="parent::tei:item[@rend]">
-	  <xsl:sequence select="tei:processClass(parent::tei:item/@rend,$auto)"/>
+        <xsl:sequence select="tei:processClass(parent::tei:item/@rend, $auto)"/>
       </xsl:when>
       <xsl:otherwise>
-	<xsl:sequence select="tei:processClass(local-name(),'')"/>
+        <xsl:sequence select="tei:processClass(local-name(), '')"/>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:if test="$outputTarget='html5'">
+    <xsl:if test="$outputTarget = 'html5'">
       <xsl:call-template name="microdata"/>
-    </xsl:if>  
+    </xsl:if>
   </xsl:template>
 
 
@@ -229,6 +231,9 @@ of this software, even if advised of the possibility of such damage.
 	  <xsl:choose>
 	    <xsl:when test="starts-with(.,'#')">
 	      <xsl:sequence select="substring-after(.,'#')"/>
+	    </xsl:when>
+	    <xsl:when test="starts-with(.,'simple:')">
+	      <xsl:value-of select="substring(.,8)"/>
 	    </xsl:when>
 	    <xsl:otherwise>
 	      <xsl:for-each select="document(.)">
@@ -321,15 +326,16 @@ of this software, even if advised of the possibility of such damage.
     should be (ie plain &lt;p&gt; or &lt;div class="p"&gt; if the
     content is complex).</desc>
   </doc>
-  <xsl:function name="tei:is-DivOrP" as="node()*">
+  <xsl:function name="tei:isDivOrP" as="node()*">
     <xsl:param name="element"/>
     <xsl:for-each select="$element">
       <xsl:choose>
         <xsl:when test="tei:specList">div</xsl:when>
+        <xsl:when test="parent::tei:note[@place='display']">div</xsl:when>
+        <xsl:when test="parent::tei:note[@place='block']">div</xsl:when>
         <xsl:when test="parent::tei:figure and (tei:q/tei:l or tei:figure or parent::tei:figure/parent::tei:div)">div</xsl:when>
         <xsl:when test="ancestor::tei:notesStmt">div</xsl:when>
         <xsl:when test="tei:table">div</xsl:when>
-        <xsl:when test="parent::tei:note[not(@place or @rend)]">span</xsl:when>
         <xsl:when test="$outputTarget='epub' or $outputTarget='epub3'">div</xsl:when>
         <xsl:when test="tei:eg">div</xsl:when>
         <xsl:when test="tei:figure">div</xsl:when>
@@ -337,19 +343,18 @@ of this software, even if advised of the possibility of such damage.
         <xsl:when test="tei:l">div</xsl:when>
         <xsl:when test="tei:list">div</xsl:when>
         <xsl:when test="tei:moduleSpec">div</xsl:when>
-        <xsl:when test="tei:note[@place='display']">div</xsl:when>
-        <xsl:when test="tei:note[@place='margin']">div</xsl:when>
+        <xsl:when test="tei:note[@place='display'  or @place='block' or tei:isMarginal(@place)]">div</xsl:when>
         <xsl:when test="tei:note[tei:q]">div</xsl:when>
         <xsl:when test="tei:q/tei:figure">div</xsl:when>
         <xsl:when test="tei:q/tei:list">div</xsl:when>
-        <xsl:when test="tei:q[@rend='display']">div</xsl:when>
-        <xsl:when test="tei:q[@rend='inline' and tei:note/@place]">div</xsl:when>
+        <xsl:when test="tei:q[tei:match(@rend,'display')]">div</xsl:when>
+        <xsl:when test="tei:q[tei:match(@rend,'inline') and tei:note/@place]">div</xsl:when>
         <xsl:when test="tei:q[tei:l]">div</xsl:when>
         <xsl:when test="tei:q[tei:lg]">div</xsl:when>
         <xsl:when test="tei:q[tei:p]">div</xsl:when>
         <xsl:when test="tei:q[tei:sp]">div</xsl:when>
         <xsl:when test="tei:q[tei:floatingText]">div</xsl:when>
-        <xsl:when test="tei:quote[not(tei:is-inline(.))]">div</xsl:when>
+        <xsl:when test="tei:quote[not(tei:isInline(.))]">div</xsl:when>
         <xsl:when test="tei:specGrp">div</xsl:when>
         <xsl:when test="tei:specGrpRef">div</xsl:when>
         <xsl:when test="tei:specList">div</xsl:when>
@@ -418,7 +423,7 @@ of this software, even if advised of the possibility of such damage.
   </doc>
   <xsl:template name="makeBlock">
     <xsl:param name="style"/>
-    <xsl:element name="{if (tei:is-inline(.)) then 'span' else 'div'}">
+    <xsl:element name="{if (tei:isInline(.)) then 'span' else 'div'}">
       <xsl:call-template name="microdata"/>
       <xsl:call-template name="makeRendition">
 	<xsl:with-param name="default" select="$style"/>
@@ -469,7 +474,7 @@ of this software, even if advised of the possibility of such damage.
     </xsl:template>
 
   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl">
-      <desc>Process any element and work out a unique identififying string</desc>
+      <desc>Process any element and work out a unique identifying string</desc>
    </doc>
   <xsl:template match="*" mode="ident">
     <xsl:variable name="BaseFile">
@@ -495,7 +500,8 @@ of this software, even if advised of the possibility of such damage.
 	</xsl:variable>
 	<xsl:value-of select="$BaseFile"/>
 	<xsl:text>-</xsl:text>
-	<xsl:value-of select="substring-after(substring-after($xpath,'_text.'),'_')"/>
+	    <xsl:value-of
+		select="substring-after(substring-after($xpath,'_text.'),'_')"/>
       </xsl:when>
       <xsl:when test="self::tei:TEI and parent::tei:teiCorpus">
 	<xsl:value-of select="$masterFile"/>
@@ -838,9 +844,9 @@ of this software, even if advised of the possibility of such damage.
 	<!-- 4. we are part of an inner text -->
 	<xsl:when test="ancestor::tei:floatingText">true</xsl:when>
 	<!-- 3. we have special rendering on the document -->
-	<xsl:when test="ancestor::tei:TEI/@rend='all' 
-			or ancestor::tei:TEI/@rend='frontpage' 
-			or ancestor::tei:TEI/@rend='nosplit'">true</xsl:when>
+	<xsl:when test="ancestor::tei:TEI/tei:match(@rend,'all') 
+			or ancestor::tei:TEI/tei:match(@rend,'frontpage') 
+			or ancestor::tei:TEI/tei:match(@rend,'nosplit')">true</xsl:when>
 	<!-- 2. we are a singleton -->
 	<xsl:when test="parent::tei:body[count(*)=1] and not(tei:div or
 			tei:div2)">true</xsl:when>
@@ -849,7 +855,7 @@ of this software, even if advised of the possibility of such damage.
 			not(parent::tei:body/preceding-sibling::tei:front)
 			and not	(preceding-sibling::*)">true</xsl:when>
 	<!-- 0. we are down the hierarchy -->
-	<xsl:when test="@rend='nosplit'">true</xsl:when>
+	<xsl:when test="tei:match(@rend,'nosplit')">true</xsl:when>
 	<xsl:otherwise>false</xsl:otherwise>
       </xsl:choose>
     </xsl:for-each>

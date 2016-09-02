@@ -19,7 +19,7 @@ Unported License http://creativecommons.org/licenses/by-sa/3.0/
 
 2. http://www.opensource.org/licenses/BSD-2-Clause
 		
-All rights reserved.
+
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -45,16 +45,13 @@ theory of liability, whether in contract, strict liability, or tort
 of this software, even if advised of the possibility of such damage.
 </p>
          <p>Author: See AUTHORS</p>
-         <p>Id: $Id$</p>
+         
          <p>Copyright: 2013, TEI Consortium</p>
       </desc>
    </doc>
 
-
-  <xsl:key name="FOOTNOTES" match="tei:note[not(@place)]" use="1"/>
-  <xsl:key name="FOOTNOTES" match="tei:note[@place='foot']" use="1"/>
-  <xsl:key name="FOOTNOTES" match="tei:note[@place='bottom']" use="1"/>
-  <xsl:key name="ENDNOTES" match="tei:note[@place='end']" use="1"/>
+  <xsl:key name="ENDNOTES" match="tei:note[tei:isEndNote(.)]" use="1"/>
+  <xsl:key name="FOOTNOTES" match="tei:note[tei:isFootNote(.) ]" use="1"/>
   <xsl:key name="TREES" match="tei:eTree[not(ancestor::tei:eTree)]" use="1"/>
 
    <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl" class="hook">
@@ -125,11 +122,13 @@ the beginning of the document</desc>
 \usepackage[normalem]{ulem}
 \usepackage{fancyvrb}
 \usepackage{fancyhdr}
-\usepackage{marginnote}
-\renewcommand*{\marginfont}{\itshape\footnotesize}
-\setlength\marginparwidth{.75in}
 \usepackage{graphicx}
+\usepackage{marginnote}
+
 </xsl:text>
+<xsl:if test="not($marginFont='')">
+\renewcommand*{\marginfont}{<xsl:value-of select="$marginFont"/>}
+</xsl:if>
 <xsl:if test="key('TREES',1)">
   \usepackage{pstricks,pst-node,pst-tree}
 </xsl:if>
@@ -151,13 +150,14 @@ the beginning of the document</desc>
   \usepackage{<xsl:value-of select="$userpackage"/>}
 </xsl:if>
       <xsl:text>
-  \pagestyle{fancy} 
+  \pagestyle{</xsl:text><xsl:value-of select="$pageStyle"/><xsl:text>}
 </xsl:text>
 \usepackage[pdftitle={<xsl:sequence select="tei:generateSimpleTitle(.)"/>},
- pdfauthor={<xsl:sequence select="replace(string-join(tei:generateAuthor(.),''),'\\newline','')"/>}]{hyperref}
+ pdfauthor={<xsl:sequence
+ select="replace(string-join(tei:generateAuthor(.),''),'\\[A-z]+','')"/>}]{hyperref}
 \hyperbaseurl{<xsl:value-of select="$baseURL"/>}
 <xsl:if test="count(key('APP',1))&gt;0">
-\usepackage{eledmac}
+\usepackage[noreledmac]{eledmac}
 <xsl:call-template name="ledmacOptions"/>
 </xsl:if>
 
@@ -177,6 +177,11 @@ as a proportion of the page width.</desc>
    </doc>
    <xsl:param name="tableMaxWidth">0.85</xsl:param>
 
+   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl" class="layout" type="string">
+      <desc>Which environment to use for quotes (quote, quotation, quoting, ...)</desc>
+   </doc>
+   <xsl:param name="quoteEnv">quote</xsl:param>
+
    <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl" class="layout" type="boolean">
       <desc>Whether to number lines of poetry</desc>
    </doc>
@@ -188,15 +193,24 @@ as a proportion of the page width.</desc>
    <xsl:param name="everyHowManyLines">5</xsl:param>
 
    <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl" class="layout" type="string">
-      <desc>When numbering poetry, when to restart the sequence;
-this must be the name of a TEI element</desc>
+      <desc>When numbering poetry, when to restart the sequence; this must be the name of a TEI element</desc>
    </doc>
    <xsl:param name="resetVerseLineNumbering">div1</xsl:param>
 
    <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl" class="userpackage" type="string">
       <desc>Options to pass to the geometry package to set margins etc</desc>
    </doc>
-   <xsl:param name="latexGeometryOptions">twoside,lmargin=1in,rmargin=1in,tmargin=1in,bmargin=1in</xsl:param>
+   <xsl:param name="latexGeometryOptions">twoside,lmargin=1in,rmargin=1in,tmargin=1in,bmargin=1in,marginparwidth=0.75in</xsl:param>
+
+   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl" class="userpackage" type="string">
+      <desc>The page style to use with the \pagestyle command (empty, plain, fancy, ...).</desc>
+   </doc>
+   <xsl:param name="pageStyle">fancy</xsl:param>
+
+   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl" class="userpackage" type="string">
+      <desc>Configuration to pass to hypersetup.</desc>
+   </doc>
+   <xsl:param name="hyperSetup">linkbordercolor=0.75 0.75 0.75,urlbordercolor=0.75 0.75 0.75,bookmarksnumbered=true</xsl:param>
 
    <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl" class="userpackage" type="string">
       <desc>Depth of nesting of reference documentation when processing ODD</desc>
@@ -220,6 +234,7 @@ characters. The normal characters remain active for LaTeX commands.
   {\RequirePackage{xcolor}}%
   {\RequirePackage{color}}
 \usepackage{colortbl}
+\usepackage{wrapfig}
 \usepackage{ifxetex}
 \ifxetex
   \usepackage{fontspec}
@@ -374,6 +389,8 @@ characters. The normal characters remain active for LaTeX commands.
 <xsl:param name="gothicFont">Lucida Blackletter</xsl:param>
 <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl" class="style" type="string"><desc>Font for calligraphic</desc>   </doc>
 <xsl:param name="calligraphicFont">Lucida Calligraphy</xsl:param>
+<doc xmlns="http://www.oxygenxml.com/ns/doc/xsl" class="style" type="string"><desc>Command to set margin font</desc>   </doc>
+<xsl:param name="marginFont">\itshape\footnotesize</xsl:param>
   <xsl:param name="longtables">true</xsl:param>
 
    <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl" class="layout">
@@ -457,6 +474,8 @@ characters. The normal characters remain active for LaTeX commands.
   \pagenumbering{roman}
   \def\thechapter{\@roman\c@chapter}
   \def\theHchapter{\roman{chapter}}
+  \def\thesection{\@roman\c@section}
+  \def\theHsection{\roman{section}}
   \def\@chapapp{}%
 }
 \def\mainmatter{%
@@ -468,6 +487,8 @@ characters. The normal characters remain active for LaTeX commands.
   \setcounter{secnumdepth}{6}
   \def\@chapapp{\chaptername}%
   \def\theHchapter{\arabic{chapter}}
+  \def\thesection{\@arabic\c@section}
+  \def\theHsection{\arabic{section}}
 }
 \def\backmatter{%
   \cleardoublepage
@@ -564,6 +585,19 @@ characters. The normal characters remain active for LaTeX commands.
    <xsl:template name="latexBegin">
       <xsl:text>
 \makeatletter
+\newcommand*{\cleartoleftpage}{%
+  \clearpage
+    \if@twoside
+    \ifodd\c@page
+      \hbox{}\newpage
+      \if@twocolumn
+        \hbox{}\newpage
+      \fi
+    \fi
+  \fi
+}
+\makeatother
+\makeatletter
 \thispagestyle{empty}
 \markright{\@title}\markboth{\@title}{\@author}
 \renewcommand\small{\@setfontsize\small{9pt}{11pt}\abovedisplayskip 8.5\p@ plus3\p@ minus4\p@
@@ -587,7 +621,7 @@ characters. The normal characters remain active for LaTeX commands.
 \fancyfoot[LE]{}
 \fancyfoot[CE]{\thepage}
 \fancyfoot[RE]{\TheID}
-\hypersetup{linkbordercolor=0.75 0.75 0.75,urlbordercolor=0.75 0.75 0.75,bookmarksnumbered=true}
+\hypersetup{</xsl:text><xsl:value-of select="$hyperSetup"/><xsl:text>}
 \fancypagestyle{plain}{\fancyhead{}\renewcommand{\headrulewidth}{0pt}}</xsl:text>
    </xsl:template>
 

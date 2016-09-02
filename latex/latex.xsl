@@ -34,7 +34,7 @@ Unported License http://creativecommons.org/licenses/by-sa/3.0/
 
 2. http://www.opensource.org/licenses/BSD-2-Clause
 		
-All rights reserved.
+
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -60,7 +60,7 @@ theory of liability, whether in contract, strict liability, or tort
 of this software, even if advised of the possibility of such damage.
 </p>
          <p>Author: See AUTHORS</p>
-         <p>Id: $Id$</p>
+         
          <p>Copyright: 2013, TEI Consortium</p>
       </desc>
    </doc>
@@ -95,17 +95,17 @@ of this software, even if advised of the possibility of such damage.
   <xsl:template name="verbatim-Text">
       <xsl:param name="words"/>
       <xsl:choose>
-         <xsl:when test="parent::*/@xml:lang='zh-TW'">
+         <xsl:when test="lang('zh-TW') or lang('zh')">
 	           <xsl:text>{\textChinese </xsl:text>
 		   <xsl:value-of select="tei:escapeCharsVerbatim($words)"/>
 	           <xsl:text>}</xsl:text>
          </xsl:when>
-         <xsl:when test="parent::*/@xml:lang='ja'">
+         <xsl:when test="lang('ja')">
 	           <xsl:text>{\textJapanese </xsl:text>
 		   <xsl:value-of select="tei:escapeCharsVerbatim($words)"/>
 	           <xsl:text>}</xsl:text>
          </xsl:when>
-         <xsl:when test="parent::*/@xml:lang='kr'">
+         <xsl:when test="lang('kr')">
 	           <xsl:text>{\textKorean </xsl:text>
 		   <xsl:value-of select="tei:escapeCharsVerbatim($words)"/>
 	           <xsl:text>}</xsl:text>
@@ -116,6 +116,41 @@ of this software, even if advised of the possibility of such damage.
       </xsl:choose>
 
   </xsl:template>
+  
+  <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl">
+    <desc>Overrides the nsList template in common/verbatim.xsl, escaping the namespace URIs for latex.</desc>
+  </doc>
+  <xsl:template name="nsList">
+    <xsl:variable name="ns">
+      <all>
+        <names>
+          <xsl:apply-templates select="." mode="ns"/>
+        </names>
+        <text>
+          <xsl:copy-of select="."/>
+        </text>
+      </all>
+    </xsl:variable>
+    
+    <xsl:for-each select="$ns/all/names">
+      <xsl:for-each-group select="ns" group-by="@name">
+        <xsl:if test="key('NSUsed',@value)">
+          <xsl:call-template name="verbatim-lineBreak">
+            <xsl:with-param name="id">22</xsl:with-param>
+          </xsl:call-template>
+          <xsl:sequence select="concat('&#160;&#160;&#160;xmlns:',@name,'=',$dq,tei:escapeCharsVerbatim(@value),$dq)"/>
+        </xsl:if>
+      </xsl:for-each-group>
+    </xsl:for-each>
+  </xsl:template>
+  
+  <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl">
+    <desc>Overrides the NameSpaceURI template in common/verbatim.xsl, escaping the namespace URIs for latex.</desc>
+  </doc>
+  <xsl:template name="NamespaceURI">
+    <xsl:param name="uri"/>
+    <xsl:value-of select="tei:escapeCharsVerbatim($uri)"/>
+  </xsl:template>
 
 
   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl">
@@ -125,7 +160,8 @@ of this software, even if advised of the possibility of such damage.
   </doc>
   <xsl:function name="tei:escapeCharsVerbatim" as="xs:string">
     <xsl:param name="letters"/>
-    <xsl:value-of select="replace(replace(replace(replace(translate($letters, '\{}','⃥❴❵'),
+    <xsl:value-of select="replace(replace(replace(replace(replace(translate($letters, '\{}','⃥❴❵'),
+		  '&#10;','\\newline&#10;'),
 		  '_','\\textunderscore '),
 		  '\^','\\textasciicircum '),
 		  '~','\\textasciitilde '),
@@ -136,7 +172,7 @@ of this software, even if advised of the possibility of such damage.
     <xsl:param name="letters"/>
     <xsl:param name="context"/>
       <xsl:value-of
-	  select="replace(replace(replace(replace(replace(translate($letters,'&#10;',' '), 
+	  select="replace(replace(replace(replace(replace(translate($letters,'ſ&#10;','s '), 
 		  '\\','\\textbackslash '),
 		  '_','\\textunderscore '),
 		  '\^','\\textasciicircum '),
@@ -148,7 +184,7 @@ of this software, even if advised of the possibility of such damage.
   <xsl:function name="tei:escapeCharsPartial" as="xs:string" override="yes">
     <xsl:param name="letters"/>
       <xsl:value-of
-	  select="replace($letters,'([#])','\\$1')"/>
+	  select="replace($letters,'([%#])','\\$1')"/>
 
   </xsl:function>
 
@@ -192,10 +228,10 @@ of this software, even if advised of the possibility of such damage.
   <xsl:template match="text()" mode="eg">
       <xsl:choose>
          <xsl:when test="starts-with(.,'&#xA;')">
-            <xsl:value-of select="substring-after(tei:escapeCharsVerbatim(.),'&#xA;')"/>
+            <xsl:value-of select="substring-after(.,'&#xA;')"/>
          </xsl:when>
          <xsl:otherwise>
-	   <xsl:value-of select="tei:escapeCharsVerbatim(.)"/>
+	   <xsl:value-of select="."/>
          </xsl:otherwise>
       </xsl:choose>
   </xsl:template>
@@ -243,7 +279,12 @@ of this software, even if advised of the possibility of such damage.
 	  <xsl:value-of select="tei:escapeChars(normalize-space(.),.)"/>
 	  <xsl:text>}</xsl:text>	    
 	</xsl:when>
-	<xsl:when test="$style=''">
+	<xsl:when test="local-name()='label'">
+	  <xsl:text>\textbf{</xsl:text>
+	  <xsl:apply-templates/>
+	  <xsl:text>}</xsl:text>
+	</xsl:when>
+	<xsl:when test="not($style)">
 	  <xsl:sequence select="concat('{\',local-name(),' ')"/>
 	  <xsl:apply-templates/>
 	  <xsl:text>}</xsl:text>
@@ -262,7 +303,7 @@ of this software, even if advised of the possibility of such damage.
     <desc>how to make a horizontal rule</desc>
   </doc>
   <xsl:template name="horizontalRule">
-    <xsl:text>\hline</xsl:text>
+    <xsl:text>\\\rule[0.5ex]{\textwidth}{0.5pt}</xsl:text>
   </xsl:template>
 
   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl">

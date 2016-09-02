@@ -25,7 +25,7 @@ Stave V
 Who-e debel you? — he at last said — you no speak-e, damme, I kill-e. And so saying, the lighted tomahawk began flourishing about me in the dark.
 
 Who-e debel you? — he at last said — you no speak-e, damme, I kill-e. And so saying, the lighted tomahawk began flourishing about me in the dark.
-EffectExamplehiThis is hi rend="special" tagemphThis is emph taghiThis is hi tagtypewriterThis is typewriter effectboldThis is bold effectnormalweightThis is normalweight effectsmallcapsThis is smallcaps effectcapsallThis is capsall effectstrikethroughThis is strikethrough effectstrikedoublethroughThis is strikedoublethrough effectcolor(red)This is color(red) effectunderlineThis is underline effectunderwavylineThis is underwavyline effectunderdoublelineThis is underdoubleline effectsubscriptThis is subscript effectsuperscriptThis is superscript effectbold italic red, done separatelyrend test 1bold italic smallcapsrend test 1 Cairns 2003: 11. My work is Muellner 1996.
+EffectExamplehiThis is hi rend="special" tagemphThis is emph taghiThis is hi tagtypewriterThis is typewriter effectboldThis is bold effectnormalweightThis is normalweight effectsmallcapsThis is smallcaps effectallcapsThis is allcaps effectstrikethroughThis is strikethrough effectdoublestrikethroughThis is doublestrikethrough effectcolor(red)This is color(red) effectunderlineThis is underline effectwavyunderlineThis is wavyunderline effectdoubleunderlineThis is doubleunderline effectsubscriptThis is subscript effectsuperscriptThis is superscript effectbold italic red, done separatelyrend test 1bold italic smallcapsrend test 1 Cairns 2003: 11. My work is Muellner 1996.
 # Quotations
 
 A paragraph with a footnote containing a block-level objectWe start with a quotation:This is the way the world endsThis is the way the world endsThis is the way the world endsNot with a bang but a whimper. which is from TS Eliot's Hollow men
@@ -325,5 +325,5 @@ an egXML in a list:
 # divs with no heads
 
 Ampersands: Fit the first& Fit the first& more Fit the first&amp; more Fit the first&& Fit the first&quot; Fit the first @ http://www.example.com/?foo=bar&bar=foo&#3.
-Ampersands: Fit the first& Fit the first& more Fit the first&amp; more Fit the first&& Fit the first&quot; (as opposed to ) Fit the first @ http://www.example.com/?foo=bar&bar=foo&#3.
+Ampersands: Fit the first& Fit the first& more Fit the first&amp; more Fit the first&& Fit the first&quot; (as opposed to &quot;) Fit the first @ http://www.example.com/?foo=bar&bar=foo&#3.
 Fit the second

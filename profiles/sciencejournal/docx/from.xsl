@@ -20,7 +20,7 @@
                 xmlns:mml="http://www.w3.org/1998/Math/MathML"
                 xmlns:tbx="http://www.lisa.org/TBX-Specification.33.0.html"
                 version="2.0"
-                exclude-result-prefixes="ve o r m v wp w10 w wne mml tbx pic rel a         tei teidocx xs iso">
+                exclude-result-prefixes="#all">
     <!-- import base conversion style -->
 
 
@@ -34,7 +34,7 @@ Unported License http://creativecommons.org/licenses/by-sa/3.0/
 
 2. http://www.opensource.org/licenses/BSD-2-Clause
 		
-All rights reserved.
+
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -60,29 +60,31 @@ theory of liability, whether in contract, strict liability, or tort
 of this software, even if advised of the possibility of such damage.
 </p>
       <p>Author: See AUTHORS</p>
-      <p>Id: $Id$</p>
+      
       <p>Copyright: 2013, TEI Consortium</p>
     </desc>
   </doc>
     
-  <xsl:param name="preserveEffects">false</xsl:param>
-  
-  <doc type="function" xmlns="http://www.oxygenxml.com/ns/doc/xsl"  >
-      <desc>Defines whether or not a word paragraph is a first level heading 
-      </desc>
-    </doc>
-    
-    <xsl:function name="tei:is-firstlevel-heading" as="xs:boolean">
-      <xsl:param name="p"/>      
-      <xsl:variable name="s" select="$p/w:pPr/w:pStyle/@w:val"/>
-      <xsl:choose>
-	<xsl:when test="$s='heading 1'">true</xsl:when>
-	<xsl:when test="$s='Heading 1'">true</xsl:when>
-	<xsl:when test="$s='Heading1'">true</xsl:when>
-	<xsl:otherwise>false</xsl:otherwise>
-      </xsl:choose>
-    </xsl:function>
-    
+  <xsl:param name="preserveEffects">true</xsl:param>
+  <xsl:param name="preserveSpace">true</xsl:param>
+  <xsl:param name="preserveFontSizeChanges">true</xsl:param>
+
+ <xsl:template match="tei:TEI" mode="pass2">
+  <xsl:variable name="pass2">
+   <xsl:copy>
+    <xsl:apply-templates mode="pass2"/>
+   </xsl:copy>
+  </xsl:variable>
+  <xsl:apply-templates select="$pass2" mode="pass3"/>
+ </xsl:template>
+
+  <xsl:template name="fromDocxEffectsHook">
+    <xsl:if test="w:rPr/w:rStyle/@w:val='Heading 2 Char' and not(w:rPr/w:b/@w:val='0')">
+      <n>bold</n>
+    </xsl:if>
+  </xsl:template>
+
+   
     <doc type="function" xmlns="http://www.oxygenxml.com/ns/doc/xsl"  >
       <desc>Defines whether or not a word paragraph is a  heading 
       </desc>
@@ -133,21 +135,6 @@ of this software, even if advised of the possibility of such damage.
       </xsl:choose>
     </xsl:function>
 
-    <doc type="function" xmlns="http://www.oxygenxml.com/ns/doc/xsl"  >
-      <desc>Defines whether or not a word paragraph is a list element.</desc>
-    </doc>
-   
-    <xsl:function name="tei:is-list" as="xs:boolean">
-        <xsl:param name="p"/>        
-        <xsl:choose>
-            <xsl:when test="$p[contains(w:pPr/w:pStyle/@w:val,'List')]">true</xsl:when>
-            <xsl:when test="$p[contains(w:pPr/w:pStyle/@w:val,'Bulletted')]">true</xsl:when>
-            <xsl:when test="$p[contains(w:pPr/w:pStyle/@w:val,'Bulleted')]">true</xsl:when>
-	    <xsl:when test="$p/w:pPr/w:numPr[not(w:ins)]">true</xsl:when>
-            <xsl:otherwise>false</xsl:otherwise>
-        </xsl:choose>
-    </xsl:function>
-
    <xsl:template match="tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:title" mode="pass2">
      <xsl:copy>
     <xsl:choose>
@@ -165,6 +152,27 @@ of this software, even if advised of the possibility of such damage.
      </xsl:copy>
    </xsl:template>
 
-   <xsl:template match="tei:text/tei:body/tei:p[@rend = 'Title'][1]" mode="pass2"/>
+   <!-- try to remove unnecessary anchor elements -->
+   <xsl:template match="tei:anchor" mode="pass3">
+     <xsl:choose>
+       <xsl:when test="preceding-sibling::node()  or parent::*/@xml:id">
+	 <xsl:copy-of select="."/>
+       </xsl:when>
+       <xsl:otherwise>
+	 <xsl:copy-of select="@xml:id"/>
+       </xsl:otherwise>
+     </xsl:choose>
+   </xsl:template>
+ <!-- and copy everything else -->
+
+ <xsl:template match="@*|comment()|processing-instruction()|text()" mode="pass3">
+  <xsl:copy-of select="."/>
+ </xsl:template>
+ <xsl:template match="*" mode="pass3">
+  <xsl:copy>
+   <xsl:apply-templates select="*|@*|processing-instruction()|comment()|text()" mode="pass3"/>
+  </xsl:copy>
+ </xsl:template>
+
   </xsl:stylesheet>
   

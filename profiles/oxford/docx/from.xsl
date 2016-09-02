@@ -34,7 +34,7 @@ Unported License http://creativecommons.org/licenses/by-sa/3.0/
 
 2. http://www.opensource.org/licenses/BSD-2-Clause
 		
-All rights reserved.
+
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -60,7 +60,7 @@ theory of liability, whether in contract, strict liability, or tort
 of this software, even if advised of the possibility of such damage.
 </p>
       <p>Author: See AUTHORS</p>
-      <p>Id: $Id$</p>
+      
       <p>Copyright: 2013, TEI Consortium</p>
     </desc>
   </doc>
@@ -118,7 +118,7 @@ of this software, even if advised of the possibility of such damage.
       </desc>
     </doc>
     
-    <xsl:function name="tei:is-firstlevel-heading" as="xs:boolean">
+    <xsl:function name="tei:isFirstlevel-heading" as="xs:boolean">
       <xsl:param name="p"/>      
       <xsl:variable name="s" select="$p/w:pPr/w:pStyle/@w:val"/>
       <xsl:choose>
@@ -205,21 +205,6 @@ of this software, even if advised of the possibility of such damage.
 	  <xsl:value-of select="translate($current-header,'12345678','23456789')"/>
 	</xsl:otherwise>
       </xsl:choose>
-    </xsl:function>
-
-    <doc type="function" xmlns="http://www.oxygenxml.com/ns/doc/xsl"  >
-      <desc>Defines whether or not a word paragraph is a list element.</desc>
-    </doc>
-   
-    <xsl:function name="tei:is-list" as="xs:boolean">
-        <xsl:param name="p"/>        
-        <xsl:choose>
-            <xsl:when test="$p[contains(w:pPr/w:pStyle/@w:val,'List')]">true</xsl:when>
-            <xsl:when test="$p[contains(w:pPr/w:pStyle/@w:val,'Bulletted')]">true</xsl:when>
-            <xsl:when test="$p[contains(w:pPr/w:pStyle/@w:val,'Bulleted')]">true</xsl:when>
-	    <xsl:when test="$p/w:pPr/w:numPr[not(w:ins)]">true</xsl:when>
-            <xsl:otherwise>false</xsl:otherwise>
-        </xsl:choose>
     </xsl:function>
 
     <doc type="function" xmlns="http://www.oxygenxml.com/ns/doc/xsl"  >

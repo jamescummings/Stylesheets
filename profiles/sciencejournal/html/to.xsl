@@ -35,9 +35,13 @@
    <xsl:param name="institution"></xsl:param>
    <xsl:param name="numberHeadings">false</xsl:param>
    <xsl:param name="autoToc">false</xsl:param>
-   <xsl:template name="stdfooter"/>
+  <xsl:template name="stdfooter"/>
+   <xsl:template name="stdheader">
+     <xsl:param name="title"/>
+   </xsl:template>
 
-   <xsl:key name="TABLESORT" use="1" match="tei:table[@rend='sort']"/>
+
+   <xsl:key name="TABLESORT" use="1" match="tei:table[tei:match(@rend,'sort')]"/>
 
    <xsl:template name="javascriptHook">
      <style type="text/css">

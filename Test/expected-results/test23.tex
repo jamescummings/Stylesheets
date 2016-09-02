@@ -4,6 +4,7 @@
   {\RequirePackage{xcolor}}%
   {\RequirePackage{color}}
 \usepackage{colortbl}
+\usepackage{wrapfig}
 \usepackage{ifxetex}
 \ifxetex
   \usepackage{fontspec}
@@ -121,7 +122,7 @@
 \mathcode`\_=\string"8000
 \catcode`\_=12\relax
 
-\usepackage[a4paper,twoside,lmargin=1in,rmargin=1in,tmargin=1in,bmargin=1in]{geometry}
+\usepackage[a4paper,twoside,lmargin=1in,rmargin=1in,tmargin=1in,bmargin=1in,marginparwidth=0.75in]{geometry}
 \usepackage{framed}
 
 \definecolor{shadecolor}{gray}{0.95}
@@ -129,14 +130,15 @@
 \usepackage[normalem]{ulem}
 \usepackage{fancyvrb}
 \usepackage{fancyhdr}
-\usepackage{marginnote}
-\renewcommand*{\marginfont}{\itshape\footnotesize}
-\setlength\marginparwidth{.75in}
 \usepackage{graphicx}
+\usepackage{marginnote}
+
+
+\renewcommand*{\marginfont}{\itshape\footnotesize}
 
 \def\Gin@extensions{.pdf,.png,.jpg,.mps,.tif}
 
-  \pagestyle{fancy} 
+  \pagestyle{fancy}
 
 \usepackage[pdftitle={Whitespace handling},
  pdfauthor={Sebastian Rahtz}]{hyperref}
@@ -199,6 +201,8 @@
   \pagenumbering{roman}
   \def\thechapter{\@roman\c@chapter}
   \def\theHchapter{\roman{chapter}}
+  \def\thesection{\@roman\c@section}
+  \def\theHsection{\roman{section}}
   \def\@chapapp{}%
 }
 \def\mainmatter{%
@@ -210,6 +214,8 @@
   \setcounter{secnumdepth}{6}
   \def\@chapapp{\chaptername}%
   \def\theHchapter{\arabic{chapter}}
+  \def\thesection{\@arabic\c@section}
+  \def\theHsection{\arabic{section}}
 }
 \def\backmatter{%
   \cleardoublepage
@@ -281,6 +287,19 @@
 \title{Whitespace handling}
 \author{Sebastian Rahtz}\makeatletter 
 \makeatletter
+\newcommand*{\cleartoleftpage}{%
+  \clearpage
+    \if@twoside
+    \ifodd\c@page
+      \hbox{}\newpage
+      \if@twocolumn
+        \hbox{}\newpage
+      \fi
+    \fi
+  \fi
+}
+\makeatother
+\makeatletter
 \thispagestyle{empty}
 \markright{\@title}\markboth{\@title}{\@author}
 \renewcommand\small{\@setfontsize\small{9pt}{11pt}\abovedisplayskip 8.5\p@ plus3\p@ minus4\p@
@@ -324,9 +343,9 @@ Here is a simple \texttt{<ptr>} to the next section: \textit{\hyperref[P1]{1. Te
 \begin{longtable}{P{0.11724137931034483\textwidth}P{0.7327586206896551\textwidth}}
 emph\tabcellsep This is \textit{emph} tag\end{longtable} \par
  
-\section[Tests]{Tests}\label{P1}\par
+\section[{Tests}]{Tests}\label{P1}\par
  	   {\persName  	     	     	    Edward George Bulwer-Lytton, 	    Baron Lytton of 	     {\placeName Knebworth} 	     	  } 	   	    via Marsala 24 	    40126 	     {\name Bologna} 	     {\name Italy} 	   	 	
-\section[More Tests]{More Tests}         \par
+\section[{More Tests}]{More Tests}         \par
  {\persName   Edward George Bulwer-Lytton, Baron Lytton of  {\placeName Knebworth}} via Marsala 2440126 {\name Bologna} {\name Italy} 	\begin{figure}[htbp]
 \noindent 	   	  \includegraphics[]{lessing.jpg} 	
 \caption{\label{testfig}Doris Lessing}\end{figure}

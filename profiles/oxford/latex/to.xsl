@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xsl:stylesheet 
-                xmlns:m="http://www.w3.org/1998/Math/MathML"
-                xmlns:tei="http://www.tei-c.org/ns/1.0"
-                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                exclude-result-prefixes="tei m"
-                version="2.0">
-    <!-- import base conversion style -->
+    xmlns:teix="http://www.tei-c.org/ns/Examples"
+    xmlns:m="http://www.w3.org/1998/Math/MathML"
+    xmlns:tei="http://www.tei-c.org/ns/1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    exclude-result-prefixes="tei m teix"
+    version="2.0">
+  <!-- import base conversion style -->
 
     <xsl:import href="../../../latex/latex.xsl"/>
   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl" scope="stylesheet" type="stylesheet">
@@ -18,7 +19,7 @@ Unported License http://creativecommons.org/licenses/by-sa/3.0/
 
 2. http://www.opensource.org/licenses/BSD-2-Clause
 		
-All rights reserved.
+
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -44,7 +45,7 @@ theory of liability, whether in contract, strict liability, or tort
 of this software, even if advised of the possibility of such damage.
 </p>
          <p>Author: See AUTHORS</p>
-         <p>Id: $Id$</p>
+         
          <p>Copyright: 2013, TEI Consortium</p>
       </desc>
    </doc>
@@ -53,10 +54,11 @@ of this software, even if advised of the possibility of such damage.
 <xsl:param name="parIndent">0pt</xsl:param>
    <xsl:template name="latexPreambleHook">
 \defaultfontfeatures{Scale=MatchLowercase}
-\setromanfont{Minion Pro}
-\setsansfont{Myriad Pro}
+\setromanfont{Trebuchet MS}
+\setsansfont{Trebuchet MS}
 \setlength{\headheight}{14pt}
 </xsl:template>
 
+<xsl:template match="teix:egXML[tei:match(@rend,'invisible')]"/>
     
 </xsl:stylesheet>

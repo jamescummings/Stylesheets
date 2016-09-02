@@ -41,12 +41,12 @@
   <xsl:param name="xrefName"/>
   <xsl:key match="tei:moduleRef" name="ModuleRefs" use="1"/>
   <xsl:key match="tei:moduleRef" name="MODULEREFS" use="@key"/>
-  <xsl:key match="tei:classRef" name="ClassRefs" use="1"/>
-  <xsl:key match="tei:classRef" name="CLASSREFS" use="@key"/>
-  <xsl:key match="tei:macroRef" name="MacroRefs" use="1"/>
+  <xsl:key match="tei:classRef[not(ancestor::tei:content)]" name="ClassRefs" use="1"/>
+  <xsl:key match="tei:classRef[not(ancestor::tei:content)]" name="CLASSREFS" use="@key"/>
+  <xsl:key match="tei:macroRef[not(ancestor::tei:content)]" name="MacroRefs" use="1"/>
   <xsl:key match="tei:macroRef" name="MACROREFS" use="@key"/>
-  <xsl:key match="tei:elementRef" name="ElementRefs" use="1"/>
-  <xsl:key match="tei:elementRef" name="ELEMENTREFS" use="@key"/>
+  <xsl:key match="tei:elementRef[not(ancestor::tei:content)]" name="ElementRefs" use="1"/>
+  <xsl:key match="tei:elementRef[not(ancestor::tei:content)]" name="ELEMENTREFS" use="@key"/>
   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl" scope="stylesheet" type="stylesheet">
       <desc>
          <p> TEI stylesheet for making JSON from ODD </p>
@@ -57,7 +57,7 @@ Unported License http://creativecommons.org/licenses/by-sa/3.0/
 
 2. http://www.opensource.org/licenses/BSD-2-Clause
 		
-All rights reserved.
+
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -83,11 +83,11 @@ theory of liability, whether in contract, strict liability, or tort
 of this software, even if advised of the possibility of such damage.
 </p>
          <p>Author: See AUTHORS</p>
-         <p>Id: $Id$</p>
+         
          <p>Copyright: 2013, TEI Consortium</p>
       </desc>
    </doc>
-   <xsl:param name="callback">teijs</xsl:param>
+   <xsl:param name="callback"></xsl:param>
    <xsl:param name="showChildren">false</xsl:param>
 
    <xsl:template name="emphasize">
@@ -106,6 +106,7 @@ of this software, even if advised of the possibility of such damage.
    <xsl:template name="makeExternalLink">
       <xsl:param name="ptr" as="xs:boolean" select="false()"/>
       <xsl:param name="dest"/>
+      <xsl:param name="title"/>
    </xsl:template>
    <xsl:template name="makeInternalLink">
       <xsl:param name="ptr" as="xs:boolean"  select="false()"/>
@@ -154,12 +155,12 @@ of this software, even if advised of the possibility of such damage.
       <xsl:text>(</xsl:text>
     </xsl:if>
     <xsl:text>{"title": "</xsl:text>
-    <xsl:sequence select="tei:generateMetadataTitle(.)"/>
+    <xsl:sequence select="tei:generateMetadataTitle(*)"/>
     <xsl:text>","edition": "</xsl:text>
-    <xsl:sequence select="tei:generateEdition(.)"/>
+    <xsl:sequence select="tei:generateEdition(*)"/>
     <xsl:text>","generator": "odd2json",
     "date":"</xsl:text>
-    <xsl:call-template name="showDate"/>
+    <xsl:sequence select="tei:whatsTheDate()"/>
     <xsl:text>","modules": [</xsl:text>
     <xsl:for-each select="key('Modules',1)">
       <xsl:sort select="@ident"/>
@@ -259,6 +260,20 @@ of this software, even if advised of the possibility of such damage.
 	  <xsl:text>",</xsl:text>
         </xsl:if>
 	<xsl:value-of select="desc"/>
+  <xsl:for-each select="values">
+    <xsl:text>,</xsl:text>
+    <xsl:text>"values":[</xsl:text>
+    <xsl:for-each select="value">
+      <xsl:text>"</xsl:text>
+      <xsl:value-of select="."/>
+      <xsl:text>"</xsl:text>
+      <xsl:if test="not(position()=last())">
+        <xsl:text>,</xsl:text>
+      </xsl:if>
+    </xsl:for-each>
+    <xsl:text>]</xsl:text>
+  </xsl:for-each>
+  
 	<xsl:text>}</xsl:text>
 	<xsl:if test="position()!=last()">,</xsl:if>
       </xsl:for-each>
@@ -364,11 +379,18 @@ of this software, even if advised of the possibility of such damage.
     </xsl:if>
   </xsl:template>
 
-  <xsl:template name="bitOut">
+  <xsl:template name="schemaOut">
       <xsl:param name="grammar"/>
       <xsl:param name="element"/>
       <xsl:param name="content"/>
       <xsl:value-of select="normalize-space($content)"/>
+  </xsl:template>
+  
+  <xsl:template name="pureODDOut">
+    <xsl:param name="grammar"/>
+    <xsl:param name="element"/>
+    <xsl:param name="content"/>
+    <xsl:value-of select="normalize-space($content)"/>
   </xsl:template>
 
   <xsl:template name="typewriter">
@@ -403,6 +425,16 @@ of this software, even if advised of the possibility of such damage.
 	<desc>
 	  <xsl:call-template name="desc"/>
 	</desc>
+        <xsl:if test="tei:valList">
+          <values>
+            <xsl:for-each select="tei:valList/tei:valItem">
+              <value>
+                <xsl:value-of select="@ident"/>
+              </value>
+            </xsl:for-each>
+          </values>
+        </xsl:if>
+   
       </tei:attDef>
     </xsl:for-each>
   </xsl:template>

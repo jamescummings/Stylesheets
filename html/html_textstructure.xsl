@@ -24,7 +24,7 @@ Unported License http://creativecommons.org/licenses/by-sa/3.0/
 
 2. http://www.opensource.org/licenses/BSD-2-Clause
 		
-All rights reserved.
+
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -50,7 +50,7 @@ theory of liability, whether in contract, strict liability, or tort
 of this software, even if advised of the possibility of such damage.
 </p>
          <p>Author: See AUTHORS</p>
-         <p>Id: $Id$</p>
+         
          <p>Copyright: 2013, TEI Consortium</p>
       </desc>
    </doc>
@@ -76,8 +76,8 @@ of this software, even if advised of the possibility of such damage.
          </xsl:when>
          <xsl:when test="starts-with(local-name(),'div')">
             <xsl:if test="not(preceding-sibling::tei:*) or preceding-sibling::tei:titlePage">
-               <xsl:call-template name="doDivBody">
-		 <xsl:with-param name="Depth">2</xsl:with-param>
+               <xsl:call-template name="makeDivBody">
+		 <xsl:with-param name="depth">2</xsl:with-param>
 		 <xsl:with-param name="nav">true</xsl:with-param>
 	       </xsl:call-template>
             </xsl:if>
@@ -94,11 +94,11 @@ of this software, even if advised of the possibility of such damage.
       </xsl:choose>
   </xsl:template>
   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl">
-      <desc>
-         <p>Process root /</p>
-	 <p xmlns="http://www.w3.org/1999/xhtml"> processors must support `key' </p>
-      </desc>
-   </doc>
+    <desc>
+      <p>Process root /</p>
+      <p xmlns="http://www.w3.org/1999/xhtml"> processors must support `key' </p>
+    </desc>
+  </doc>
   <xsl:template match="/">
     <xsl:call-template name="processTEI"/>
   </xsl:template>
@@ -108,118 +108,118 @@ of this software, even if advised of the possibility of such damage.
          <p>Process top-level elements /</p>
       </desc>
    </doc>
-   <xsl:template name="processTEI">
-     <xsl:choose>
-       <!-- there are various choices of how to proceed, driven by
-	    
-	    $pageLayout: Simple, Complex
-	    
-	    $STDOUT: true or false
-	    
-	    $splitLevel: -1 to 3
-	    
-	    $requestedID: requests a particular page
-       -->
-       <!-- we are making a composite layout and there is a TEI or teiCorpus element -->
-       <xsl:when test="($pageLayout = 'Complex') and (tei:TEI or
-		       tei:teiCorpus or tei:text)">
-	 <xsl:if test="$verbose='true'">
-	   <xsl:message>case 1: pageLayout <xsl:value-of select="$pageLayout"/>
-	   </xsl:message>
-	 </xsl:if>
-	 <xsl:for-each select="tei:TEI|tei:teiCorpus|tei:text">
-	   <xsl:call-template name="doPage">
-	     <xsl:with-param name="currentID" select="$requestedID"/>
-	   </xsl:call-template>
-	 </xsl:for-each>
-	 <xsl:if test="$STDOUT='false'">
-	   <xsl:call-template name="doDivs"/>
-	 </xsl:if>
-       </xsl:when>
-       <!-- we have been asked for a particular section of the document -->
-       <xsl:when test="not($requestedID='')">
-	 <xsl:if test="$verbose='true'">
-	   <xsl:message>case 3: ID <xsl:value-of select="$requestedID"/>, pageLayout
-	   <xsl:value-of select="$pageLayout"/>
-	   </xsl:message>
-	 </xsl:if>
-	 <xsl:choose>
-	   <xsl:when test="$requestedID='prelim___'">
-	     <xsl:apply-templates/>
-	   </xsl:when>
-	   <xsl:when test="count(id($requestedID))&gt;0">
-	     <xsl:for-each select="id($requestedID)">
-	       <xsl:call-template name="writeDiv"/>
-	     </xsl:for-each>
-	   </xsl:when>
-	   <xsl:otherwise>
-	     <!-- the passed ID is a pseudo-XPath expression
-		  which starts below TEI/text.
-		  The real XPath syntax is changed to avoid problems
-	     -->
-	     <xsl:apply-templates mode="xpath" select="tei:TEI/tei:text">
-	       <xsl:with-param name="xpath" select="$requestedID"/>
-	     </xsl:apply-templates>
-	   </xsl:otherwise>
-	 </xsl:choose>
-       </xsl:when>
-       <!-- we want HTML to just splurge out-->
-       <xsl:when test="$STDOUT='true'">
-	 <xsl:if test="$verbose='true'">
-	   <xsl:message>case 4: write to stdout, pageLayout <xsl:value-of select="$pageLayout"/>
-	   </xsl:message>
-	 </xsl:if>
-	 <xsl:apply-templates/>
-       </xsl:when>
-       <!-- we want the document split up into separate files -->
-       <xsl:when test="tei:TEI or tei:teiCorpus and number($splitLevel)&gt;-1">
-	 <xsl:if test="$verbose='true'">
-	   <xsl:message>case 5: split output, <xsl:value-of select="$splitLevel"/> pageLayout <xsl:value-of select="$pageLayout"/>
-	   </xsl:message>
-	 </xsl:if>
-	 <xsl:apply-templates mode="split"/>
-       </xsl:when>
-       <!-- we want the whole document, in an output file -->
-       <xsl:otherwise>
-	 <xsl:if test="$verbose='true'">
-	   <xsl:message>case 6: one document, pageLayout <xsl:value-of select="$pageLayout"/>
-	   </xsl:message>
-	 </xsl:if>
-	 <xsl:choose>
-	   <xsl:when test="$masterFile='' or $STDOUT='true'">
-	     <xsl:apply-templates/>
-	   </xsl:when>
-	   <xsl:otherwise>
-	     
-	     <xsl:variable name="outName">
-	       <xsl:call-template name="outputChunkName">
-		 <xsl:with-param name="ident">
-		   <xsl:value-of select="$masterFile"/>
-		 </xsl:with-param>
-	       </xsl:call-template>
-	     </xsl:variable>
-	     
-	     <xsl:if test="$verbose='true'">
-	       <xsl:message>Opening file <xsl:value-of select="$outName"/>
-	       </xsl:message>
-	     </xsl:if>
-	     <xsl:result-document doctype-public="{$doctypePublic}" doctype-system="{$doctypeSystem}"
-				  encoding="{$outputEncoding}"
-				  href="{$outName}"
-				  method="{$outputMethod}">
-	       <xsl:apply-templates/>
-	     </xsl:result-document>
-	     
-	     <xsl:if test="$verbose='true'">
-	       <xsl:message>Closing file <xsl:value-of select="$outName"/>
-	       </xsl:message>
-	     </xsl:if>
-	     
-	   </xsl:otherwise>
-	 </xsl:choose>
-       </xsl:otherwise>
-     </xsl:choose>
-   </xsl:template>
+  <xsl:template name="processTEI">
+    <xsl:choose>
+      <!-- there are various choices of how to proceed, driven by
+        
+        $pageLayout: Simple, Complex
+        
+        $STDOUT: true or false
+        
+        $splitLevel: -1 to 3
+        
+        $requestedID: requests a particular page
+      -->
+      <!-- we are making a composite layout and there is a TEI or teiCorpus element -->
+      <xsl:when test="($pageLayout = 'Complex') and (tei:TEI or
+        tei:teiCorpus or tei:text)">
+        <xsl:if test="$verbose='true'">
+          <xsl:message>case 1: pageLayout <xsl:value-of select="$pageLayout"/>
+          </xsl:message>
+        </xsl:if>
+        <xsl:for-each select="tei:TEI|tei:teiCorpus|tei:text">
+          <xsl:call-template name="doPage">
+            <xsl:with-param name="currentID" select="$requestedID"/>
+          </xsl:call-template>
+        </xsl:for-each>
+        <xsl:if test="$STDOUT='false'">
+          <xsl:call-template name="doDivs"/>
+        </xsl:if>
+      </xsl:when>
+      <!-- we have been asked for a particular section of the document -->
+      <xsl:when test="not($requestedID='')">
+        <xsl:if test="$verbose='true'">
+          <xsl:message>case 3: ID <xsl:value-of select="$requestedID"/>, pageLayout
+            <xsl:value-of select="$pageLayout"/>
+          </xsl:message>
+        </xsl:if>
+        <xsl:choose>
+          <xsl:when test="$requestedID='prelim___'">
+            <xsl:apply-templates/>
+          </xsl:when>
+          <xsl:when test="count(id($requestedID))&gt;0">
+            <xsl:for-each select="id($requestedID)">
+              <xsl:call-template name="writeDiv"/>
+            </xsl:for-each>
+          </xsl:when>
+          <xsl:otherwise>
+            <!-- the passed ID is a pseudo-XPath expression
+              which starts below TEI/text.
+              The real XPath syntax is changed to avoid problems
+            -->
+            <xsl:apply-templates mode="xpath" select="tei:TEI/tei:text">
+              <xsl:with-param name="xpath" select="$requestedID"/>
+            </xsl:apply-templates>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <!-- we want HTML to just splurge out-->
+      <xsl:when test="$STDOUT='true'">
+        <xsl:if test="$verbose='true'">
+          <xsl:message>case 4: write to stdout, pageLayout <xsl:value-of select="$pageLayout"/>
+          </xsl:message>
+        </xsl:if>
+        <xsl:apply-templates/>
+      </xsl:when>
+      <!-- we want the document split up into separate files -->
+      <xsl:when test="tei:TEI or tei:teiCorpus and number($splitLevel)&gt;-1">
+        <xsl:if test="$verbose='true'">
+          <xsl:message>case 5: split output, <xsl:value-of select="$splitLevel"/> pageLayout <xsl:value-of select="$pageLayout"/>
+          </xsl:message>
+        </xsl:if>
+        <xsl:apply-templates mode="split"/>
+      </xsl:when>
+      <!-- we want the whole document, in an output file -->
+      <xsl:otherwise>
+        <xsl:if test="$verbose='true'">
+          <xsl:message>case 6: one document, pageLayout <xsl:value-of select="$pageLayout"/>
+          </xsl:message>
+        </xsl:if>
+        <xsl:choose>
+          <xsl:when test="$masterFile='' or $STDOUT='true'">
+            <xsl:apply-templates/>
+          </xsl:when>
+          <xsl:otherwise>
+            
+            <xsl:variable name="outName">
+              <xsl:call-template name="outputChunkName">
+                <xsl:with-param name="ident">
+                  <xsl:value-of select="$masterFile"/>
+                </xsl:with-param>
+              </xsl:call-template>
+            </xsl:variable>
+            
+            <xsl:if test="$verbose='true'">
+              <xsl:message>Opening file (process TEI)<xsl:value-of select="$outName"/>
+              </xsl:message>
+            </xsl:if>
+            <xsl:result-document doctype-public="{$doctypePublic}" doctype-system="{$doctypeSystem}"
+              encoding="{$outputEncoding}"
+              href="{$outName}"
+              method="{$outputMethod}">
+              <xsl:apply-templates/>
+            </xsl:result-document>
+            
+            <xsl:if test="$verbose='true'">
+              <xsl:message>Closing file <xsl:value-of select="$outName"/>
+              </xsl:message>
+            </xsl:if>
+            
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
 
   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl">
       <desc>Process elements processing-instruction()[name()='xmltex']</desc>
@@ -317,8 +317,8 @@ of this software, even if advised of the possibility of such damage.
                   </xsl:call-template>
                </xsl:when>
                <xsl:when test="starts-with(local-name(),'div')   or      $pageLayout='Complex'">
-                  <xsl:call-template name="doDivBody">
-		    <xsl:with-param name="Depth">2</xsl:with-param>
+                  <xsl:call-template name="makeDivBody">
+		    <xsl:with-param name="depth">2</xsl:with-param>
 		    <xsl:with-param name="nav">true</xsl:with-param>
 		  </xsl:call-template>
                </xsl:when>
@@ -446,7 +446,7 @@ of this software, even if advised of the possibility of such damage.
 	         <xsl:apply-templates select="." mode="ident"/>
 	       </xsl:when>
 	       <xsl:otherwise>
-	         <xsl:value-of select="$BaseFile"/>
+		 <xsl:value-of select="$BaseFile"/>
 	       </xsl:otherwise>
 	     </xsl:choose>
 	   </xsl:with-param>
@@ -454,7 +454,7 @@ of this software, even if advised of the possibility of such damage.
       </xsl:variable>
     
       <xsl:if test="$verbose='true'">
-         <xsl:message>Opening file <xsl:value-of select="$outName"/>
+         <xsl:message>Opening file (split TEI)<xsl:value-of select="$outName"/>
          </xsl:message>
       </xsl:if>
       <xsl:result-document doctype-public="{$doctypePublic}" doctype-system="{$doctypeSystem}"
@@ -486,6 +486,7 @@ of this software, even if advised of the possibility of such damage.
    </doc>
   <xsl:template match="tei:closer">
 	<xsl:choose>
+	  <xsl:when test="not(node())"/>
 	  <xsl:when test="tei:signed">
 	    <div class="closer">
 	      <xsl:apply-templates/>
@@ -593,7 +594,7 @@ of this software, even if advised of the possibility of such damage.
 	    <tei:TERM>
 	      <xsl:value-of select="tei:term"/>
 	    </tei:TERM>	    
-	    <xsl:for-each select="ancestor-or-self::*[tei:is-identifiable(.)][1]">
+	    <xsl:for-each select="ancestor-or-self::*[tei:isIdentifiable(.)][1]">
 	      <tei:LINK>
 		  <xsl:apply-templates mode="generateLink"
 				       select="."/>
@@ -637,8 +638,8 @@ of this software, even if advised of the possibility of such damage.
     <xsl:choose>
       <xsl:when test="tei:keepDivOnPage(.) or 
 		      number($depth)  &gt; number($splitLevel)">
-	<xsl:call-template name="doDivBody">
-	  <xsl:with-param name="Depth" select="$depth"/>
+	<xsl:call-template name="makeDivBody">
+	  <xsl:with-param name="depth" select="$depth"/>
 	</xsl:call-template>
       </xsl:when>
       <!-- 1. We have gone far enough -->
@@ -662,8 +663,8 @@ of this software, even if advised of the possibility of such damage.
 	</xsl:call-template>
       </xsl:when>
       <xsl:otherwise>
-	<xsl:call-template name="doDivBody">
-	  <xsl:with-param name="Depth" select="$depth"/>
+	<xsl:call-template name="makeDivBody">
+	  <xsl:with-param name="depth" select="$depth"/>
 	</xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>
@@ -685,7 +686,7 @@ of this software, even if advised of the possibility of such damage.
       </xsl:variable>
       
       <xsl:if test="$verbose='true'">
-	<xsl:message>Opening file <xsl:value-of select="$outName"/>
+	<xsl:message>Opening file (makeDivPage)<xsl:value-of select="$outName"/>
 	</xsl:message>
       </xsl:if>
       <xsl:result-document doctype-public="{$doctypePublic}" doctype-system="{$doctypeSystem}"
@@ -733,6 +734,11 @@ of this software, even if advised of the possibility of such damage.
          </xsl:when>
          <xsl:when test="ancestor::tei:group and $splitLevel=0">
 	   <xsl:call-template name="makeDivPage">
+	     <xsl:with-param name="depth">-1</xsl:with-param>
+	   </xsl:call-template>
+         </xsl:when>
+         <xsl:when test="ancestor::tei:group">
+	   <xsl:call-template name="makeDivBody">
 	     <xsl:with-param name="depth">-1</xsl:with-param>
 	   </xsl:call-template>
          </xsl:when>
@@ -858,30 +864,30 @@ of this software, even if advised of the possibility of such damage.
 
   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl">
       <desc>[html] Make a section heading
-      <param name="Depth">which head level to make</param>
+      <param name="depth">which head level to make</param>
       </desc>
    </doc>
-  <xsl:template name="doDivBody">
-      <xsl:param name="Depth"/>
+  <xsl:template name="makeDivBody">
+      <xsl:param name="depth"/>
       <xsl:param name="nav">false</xsl:param>
       <xsl:choose>
 	<xsl:when test="$filePerPage='true'">
 	    <xsl:call-template name="startDivHook"/>
 	    <xsl:call-template name="divContents">
-	      <xsl:with-param name="Depth" select="$Depth"/>
+	      <xsl:with-param name="depth" select="$depth"/>
 	      <xsl:with-param name="nav" select="$nav"/>
 	    </xsl:call-template>
 	</xsl:when>
 	<xsl:otherwise>
-	  <xsl:element name="{if ($outputTarget='html5' and number($Depth)
+	  <xsl:element name="{if ($outputTarget='html5' and number($depth)
 			     &lt; 1) then 'section' else 'div'}">
 	    <xsl:call-template name="microdata"/>
 	    <xsl:call-template name="divClassAttribute">
-	      <xsl:with-param name="depth" select="$Depth"/>
+	      <xsl:with-param name="depth" select="$depth"/>
 	    </xsl:call-template>	
 	    <xsl:call-template name="startDivHook"/>
 	    <xsl:call-template name="divContents">
-	      <xsl:with-param name="Depth" select="$Depth"/>
+	      <xsl:with-param name="depth" select="$depth"/>
 	      <xsl:with-param name="nav" select="$nav"/>
 	    </xsl:call-template>
 	  </xsl:element>
@@ -894,22 +900,16 @@ of this software, even if advised of the possibility of such damage.
    </doc>
 
   <xsl:template name="divContents">
-      <xsl:param name="Depth"/>
+      <xsl:param name="depth"/>
       <xsl:param name="nav">false</xsl:param>
       <xsl:variable name="ident">
 	<xsl:apply-templates mode="ident" select="."/>
       </xsl:variable>
-      <xsl:variable name="headertext">
-	<xsl:call-template name="header">
-	  <xsl:with-param name="display">full</xsl:with-param>
-	</xsl:call-template>
-      </xsl:variable>
-      
       <xsl:choose>
-	<xsl:when test="parent::tei:*/@rend='multicol'">
+	<xsl:when test="parent::tei:*/tei:match(@rend,'multicol')">
 	  <td style="vertical-align:top;">
-	    <xsl:if test="not($Depth = '')">
-	      <xsl:element name="h{$Depth + $divOffset}">
+	    <xsl:if test="not($depth = '')">
+	      <xsl:element name="h{$depth + $divOffset}">
 		<xsl:for-each select="tei:head[1]">		
 		  <xsl:call-template name="makeRendition">
 		    <xsl:with-param name="default">false</xsl:with-param>
@@ -927,7 +927,7 @@ of this software, even if advised of the possibility of such damage.
 	    <xsl:apply-templates/>
 	  </td>
 	</xsl:when>
-	<xsl:when test="@rend='multicol'">
+	<xsl:when test="tei:match(@rend,'multicol')">
 	  <xsl:apply-templates select="*[not(local-name(.)='div')]"/>
 	  <table>
 	    <tr>
@@ -935,37 +935,25 @@ of this software, even if advised of the possibility of such damage.
 	    </tr>
 	  </table>
 	</xsl:when>
-	<xsl:when test="@rend='nohead' or $headertext=''">
+	<xsl:when test="tei:match(@rend,'nohead')">
 	  <xsl:apply-templates/>
 	</xsl:when>
-	<xsl:otherwise>
-	  <xsl:if test="not($Depth = '')">
-	    <xsl:variable name="Heading">
-	      <xsl:variable name="ename" select="if (number($Depth)+$divOffset &gt;6) then 'div'
-						       else
-						       concat('h',number($Depth)+$divOffset)">
-	      </xsl:variable>
+	<xsl:when test="not(tei:head)">
 	      <xsl:call-template name="splitHTMLBlocks">
-		<xsl:with-param name="element" select="$ename"/>
+		<xsl:with-param name="element" select="if (number($depth)+$divOffset &gt;6) then 'div'
+					       else
+					       concat('h',number($depth)+$divOffset)"/>
 		<xsl:with-param name="content">
-		  <xsl:apply-templates select="tei:head"/>
 		  <xsl:call-template name="sectionHeadHook"/>
-		  <xsl:copy-of select="$headertext"/>	 
+		  <xsl:call-template name="header">
+		    <xsl:with-param name="display">full</xsl:with-param>
+		  </xsl:call-template>
 		</xsl:with-param>
 		<xsl:with-param name="copyid">false</xsl:with-param>
 	      </xsl:call-template>
-	      </xsl:variable>
-	      <xsl:choose>
-	      <xsl:when test="$outputTarget='html5' and number($Depth)  &lt; 1">
-		<header>
-		  <xsl:copy-of select="$Heading"/>
-		</header>
-	      </xsl:when>
-	      <xsl:otherwise>
-		<xsl:copy-of select="$Heading"/>
-	      </xsl:otherwise>
-	    </xsl:choose>
-	    
+	      <xsl:apply-templates/>
+	</xsl:when>
+	<xsl:otherwise>   
 	    <xsl:if test="$topNavigationPanel='true' and
 			  $nav='true'">
 	       <xsl:element name="{if ($outputTarget='html5') then 'nav'
@@ -976,8 +964,9 @@ of this software, even if advised of the possibility of such damage.
 		 </xsl:call-template>
 	       </xsl:element>
 	     </xsl:if>
-	   </xsl:if>
+	   
 	   <xsl:apply-templates/>
+
 	   <xsl:if test="$bottomNavigationPanel='true' and
 			 $nav='true'">
 	     <xsl:element name="{if ($outputTarget='html5') then 'nav' else
@@ -998,6 +987,7 @@ of this software, even if advised of the possibility of such damage.
   <xsl:template name="doDivs">
       <xsl:for-each select="tei:TEI/tei:text">
          <xsl:for-each select="tei:front|tei:body|tei:back">
+	   <xsl:comment>TEI <xsl:value-of select="name()"/></xsl:comment>
             <xsl:for-each select="tei:div|tei:div1">
                <xsl:variable name="currentID">
                   <xsl:apply-templates mode="ident" select="."/>
@@ -1041,7 +1031,7 @@ of this software, even if advised of the possibility of such damage.
 	   </xsl:call-template>
 	 </xsl:variable>	
 	 <xsl:if test="$verbose='true'">
-	   <xsl:message>Opening file <xsl:value-of select="$outName"/>
+	   <xsl:message>Opening file (doPage) <xsl:value-of select="$outName"/>
 	   </xsl:message>
 	 </xsl:if>
 	 <xsl:result-document doctype-public="{$doctypePublic}" doctype-system="{$doctypeSystem}"
@@ -1131,32 +1121,236 @@ of this software, even if advised of the possibility of such damage.
       <desc>[html] make the header of an HTML file </desc>
    </doc>
   <xsl:function name="tei:htmlHead">
-    <xsl:param name="pagetitle"/>
+     
+     <xsl:param name="pagetitle"/>
     <xsl:param name="number"/>
     <xsl:for-each select="$top/*">
     <head>
 	<xsl:comment>THIS FILE IS GENERATED FROM AN XML MASTER. DO NOT EDIT (<xsl:value-of select="$number"/>)</xsl:comment>
-      <title>
+       <!-- No empty <title/> allowed, main browsers don't like it at all -->
+       <xsl:if test="string($pagetitle) or string($htmlTitlePrefix)">
+          <title>
 	<xsl:value-of select="$htmlTitlePrefix"/>
 	<xsl:if test="$htmlTitlePrefix!=''">
 	  <xsl:text> </xsl:text>
 	</xsl:if>
 	<xsl:value-of select="$pagetitle"/>
       </title>
+       </xsl:if>
+       
       <xsl:call-template name="headHook"/>
       <xsl:call-template name="metaHTML">
 	<xsl:with-param name="title" select="$pagetitle"/>
       </xsl:call-template>
+
       <xsl:choose>
 	<xsl:when test="count(key('TREES',1))=0"/>
-	<xsl:when test="$treestyle='google'">
+	<xsl:when test="$treestyle='googlechart'">
           <script type="text/javascript" src="https://www.google.com/jsapi"/>
           <script type="text/javascript">
 	google.load('visualization', '1', {packages:['orgchart']});
 	google.setOnLoadCallback(drawCharts);
 	  </script>
 	</xsl:when>
-	<xsl:when test="$treestyle='d3'">
+	<xsl:when test="$treestyle='d3DragDropTree'">
+	  <!-- from  http://www.robschmuecker.com/d3-js-drag-and-drop-zoomable-tree/ -->
+          <script type="text/javascript"
+		  src="http://d3js.org/d3.v3.min.js"/>
+	  <style type="text/css">
+  
+	.node {
+    cursor: pointer;
+  }
+
+  .overlay{
+      background-color:#EEE;
+  }
+   
+  .node circle {
+    fill: #fff;
+    stroke: steelblue;
+    stroke-width: 1.5px;
+  }
+   
+  .node text {
+    font-size:10px; 
+    font-family:sans-serif;
+  }
+   
+  .link {
+    fill: none;
+    stroke: #ccc;
+    stroke-width: 1.5px;
+  }
+
+  .templink {
+    fill: none;
+    stroke: red;
+    stroke-width: 3px;
+  }
+
+  .ghostCircle.show{
+      display:block;
+  }
+
+  .ghostCircle, .activeDrag .ghostCircle{
+       display: none;
+  }
+
+</style>
+	</xsl:when>
+	<xsl:when test="$treestyle='d3CollapsableTree'">
+          <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"/>
+	    <!-- from d3noob’s block #8375092 January 11, 2014
+	    Interactive d3.js tree diagram
+	    This is a d3.js tree diagram that incldes an interactive element as used as an example in the book D3 Tips and Tricks.
+
+	    Any parent node can be clicked on to collapse the portion of the tree below it, on itself. Conversly, it can be clicked on again to regrow.
+
+	    It is derived from the Mike Bostock Collapsible tree example but it is a slightly cut down version.
+	    -->
+
+	    <style>	    	      
+	      .treediagram {background-color: #eee}
+	      .node {	      cursor: pointer;	      }	      
+	      .nodediv.desc {
+	           font: 8px sans-serif;
+	      }
+	      .nodediv {
+	      border: solid black 1px;
+	      background-color: white; 
+	      padding: 2px;
+	      font: 12px sans-serif;
+	      font-weight: bold;
+	      }
+	      span.att {	      font-style: italic;	      }
+	      .highlight {      color: red;      }	      
+	      .link {	      fill: none;	      stroke: #aaa;	      stroke-width: 2px;	      }
+	      </style><script>
+	      // ************** Generate the tree diagram	 *****************
+	      var margin = {top: 0, right: 0, bottom: 0, left: 30};
+	      var width, height, tree, svg, diagonal;
+	      var rectw = 120,recth=50;
+	      var i = 0,	duration = 750,	treeData;
+	     
+function drawCollapsibleTree (ID, w,h) {
+   width = w - margin.right - margin.left;
+   height = h - margin.top - margin.bottom;
+   tree = d3.layout.tree()
+	.size([height, width]);
+
+   diagonal = d3.svg.diagonal()
+	.projection(function(d) { return [d.y, d.x]; });
+   treeData.x0 = height / 2;
+   treeData.y0 = 0;
+   svg = d3.select(ID).append("svg:svg")
+	.attr("width", width + margin.right + margin.left)
+	.attr("height", height + margin.top + margin.bottom)
+     .append("g")
+	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+   update(treeData);
+}
+
+
+function update(source) {
+
+  // Compute the new tree layout.
+  var nodes = tree.nodes(treeData).reverse(),
+	  links = tree.links(nodes);
+
+  // Normalize for fixed-depth.
+  nodes.forEach(function(d) { d.y = d.depth * 180; });
+
+  // Update the nodes…
+  var node = svg.selectAll("g.node")
+	  .data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+  // Enter any new nodes at the parent's previous position.
+  var nodeEnter = node.enter().append("g")
+	  .attr("class", "node")
+	  .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+	  .on("click", click);
+
+   nodeEnter.append("foreignObject")
+      .attr("x", -10)
+      .attr("y", -10)
+      .attr("width", rectw) 
+      .attr("height", recth) 
+      .append("xhtml:div")
+      .attr("class",  function(d) { return "nodediv " + d.style; })
+      .html(function(d) { return d.name; });
+
+
+  // Transition nodes to their new position.
+  var nodeUpdate = node.transition()
+	  .duration(duration)
+	  .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+  nodeUpdate.select("div")
+ 	  .attr("width", rectw)
+ 	  .attr("height", recth)
+	  .style("background-color", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+  nodeUpdate.select("text")
+	  .style("fill-opacity", 1);
+
+  // Transition exiting nodes to the parent's new position.
+  var nodeExit = node.exit().transition()
+	  .duration(duration)
+	  .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+	  .remove();
+
+  nodeExit.select("foreignObject")
+ 	  .attr("width", rectw)
+ 	  .attr("height", recth);
+
+  // Update the links…
+  var link = svg.selectAll("path.link")
+	  .data(links, function(d) { return d.target.id; });
+
+  // Enter any new links at the parent's previous position.
+  link.enter().insert("path", "g")
+	  .attr("class", "link")
+	  .attr("d", function(d) {
+		var o = {x: source.x0, y: source.y0};
+		return diagonal({source: o, target: o});
+	  });
+
+  // Transition links to their new position.
+  link.transition()
+	  .duration(duration)
+	  .attr("d", diagonal);
+
+  // Transition exiting nodes to the parent's new position.
+  link.exit().transition()
+	  .duration(duration)
+	  .attr("d", function(d) {
+		var o = {x: source.x, y: source.y};
+		return diagonal({source: o, target: o});
+	  })
+	  .remove();
+
+  // Stash the old positions for transition.
+  nodes.forEach(function(d) {
+	d.x0 = d.x;
+	d.y0 = d.y;
+  });
+}
+
+// Toggle children on click.
+function click(d) {
+  if (d.children) {
+	d._children = d.children;
+	d.children = null;
+  } else {
+	d.children = d._children;
+	d._children = null;
+  }
+  update(d);
+}
+	  </script>
+	</xsl:when>
+	<xsl:when test="$treestyle='d3verticaltree'">
           <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"/>
           <script type="text/javascript">
 	    var downoffset= 40;
@@ -1174,7 +1368,7 @@ of this software, even if advised of the possibility of such damage.
       .attr("width", treewidth + 50)
       .attr("height", treedepth + extray)
       .append("svg:g")
-      .attr("transform", "translate(0, extray)"); 
+      .attr("transform", function(d) { return "translate(" + 0 + "," +  (extray + 25) + ")"; })
       var tree = d3.layout.tree().size([treewidth,treedepth]);
       var nodes = tree.nodes(treeData);
        var links = tree.links(nodes);
@@ -1266,14 +1460,16 @@ of this software, even if advised of the possibility of such damage.
 	</link>
       </xsl:if>
       
-      <xsl:if test="$cssInlineFile">
+      <xsl:if test="$cssInlineFiles">
 	<style type="text/css" title="inline_css">
-	  <xsl:for-each select="tokenize(unparsed-text($cssInlineFile),
-				'\r?\n')">
-	    <xsl:if test="not(starts-with(.,'$Id:'))">
-	      <xsl:value-of select="normalize-space(.)"/>
-	    </xsl:if>
-	    <xsl:text>&#10;</xsl:text>
+	  <xsl:for-each   select="tokenize(normalize-space($cssInlineFiles),' ')">
+	    <xsl:for-each select="tokenize(unparsed-text(.),
+				  '\r?\n')">
+	      <xsl:if test="not(starts-with(.,'$Id:') or starts-with(.,'@import'))">
+		<xsl:value-of select="normalize-space(.)"/>
+	      </xsl:if>
+	      <xsl:text>&#10;</xsl:text>
+	    </xsl:for-each>
 	  </xsl:for-each>
 	</style>
       </xsl:if>
@@ -1464,7 +1660,9 @@ of this software, even if advised of the possibility of such damage.
 			 </xsl:call-template>
 		       </xsl:element>
 		     </xsl:if>
-                     <xsl:call-template name="doDivBody"/>
+                     <xsl:call-template name="makeDivBody">
+		       <xsl:with-param name="depth" select="count(ancestor::tei:div)+1"/>
+		     </xsl:call-template>
                      <xsl:if test="$bottomNavigationPanel='true'">
 		       <xsl:element name="{if ($outputTarget='html5') then 'nav' else 'div'}">
 			 <xsl:call-template name="xrefpanel">
@@ -1782,15 +1980,13 @@ of this software, even if advised of the possibility of such damage.
    </doc>
   <xsl:template name="outputChunkName">
       <xsl:param name="ident"/>
-      <xsl:choose>
-        <xsl:when test="not($outputDir ='')">
-            <xsl:value-of select="$outputDir"/>
-            <xsl:if test="not(substring($outputDir,string-length($outputDir),string-length($outputDir))='/')">
-               <xsl:text>/</xsl:text>
-            </xsl:if>
-        </xsl:when>
-      </xsl:choose>
-      <xsl:value-of select="if (matches($ident,'^[A-z]:')) then concat('file:///',$ident) else $ident"/>
+      <xsl:if test="not($outputDir ='')">
+	<xsl:value-of select="if (matches($outputDir,'^[A-Za-z]:')) then concat('file:///',$outputDir) else $outputDir"/>
+        <xsl:if test="not(substring($outputDir,string-length($outputDir),string-length($outputDir))='/')">
+          <xsl:text>/</xsl:text>
+        </xsl:if>
+      </xsl:if>
+      <xsl:value-of select="if (matches($ident,'^[A-Za-z]:')) then concat('file:///',$ident) else $ident"/>
       <xsl:value-of select="$outputSuffix"/>
   </xsl:template>
   <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl">
@@ -1865,20 +2061,20 @@ of this software, even if advised of the possibility of such damage.
     <div id="hdr2">
       <xsl:call-template name="hdr2"/>
     </div>
-    <xsl:if test="not($contentStructure='all' or @rend='all')">
+    <xsl:if test="not($contentStructure='all' or tei:match(@rend,'all'))">
          <div id="hdr3">
 	   <xsl:call-template name="hdr3"/>
          </div>
       </xsl:if>
       <xsl:choose>
-         <xsl:when test="$contentStructure='all' or @rend='all'">
+         <xsl:when test="$contentStructure='all' or tei:match(@rend,'all')">
 	           <div class="column-wrapper">
 	              <xsl:call-template name="col1"/>
 	              <xsl:call-template name="col2"/>
 	              <xsl:call-template name="col3"/>
 	           </div>
          </xsl:when>
-         <xsl:when test="@rend='frontpage'">
+         <xsl:when test="tei:match(@rend,'frontpage')">
 	           <div class="column-wrapper">
 	              <div id="rh-col">
 	                 <xsl:for-each select="descendant-or-self::tei:TEI/tei:text/tei:body">
@@ -1988,7 +2184,7 @@ of this software, even if advised of the possibility of such damage.
 	       </xsl:call-template>
 	     </div>
 	   </xsl:if>
-	    <xsl:comment> front matter </xsl:comment>
+	    <xsl:comment>TEI  front matter </xsl:comment>
 	    <xsl:apply-templates select="tei:text/tei:front"/>
 	    <xsl:if test="$autoToc='true' and (descendant::tei:div or descendant::tei:div1) and not(descendant::tei:divGen[@type='toc'])">
 	      <h2>
@@ -2000,7 +2196,7 @@ of this software, even if advised of the possibility of such damage.
 	      <xsl:when test="tei:text/tei:group">
 		<xsl:apply-templates select="tei:text/tei:group"/>
 	      </xsl:when>
-	      <xsl:when test="@rend='multicol'">
+	      <xsl:when test="tei:match(@rend,'multicol')">
 		<table>
 		  <tr>
 		    <xsl:apply-templates select="tei:text/tei:body"/>
@@ -2008,7 +2204,7 @@ of this software, even if advised of the possibility of such damage.
 		</table>
 	      </xsl:when>
 	      <xsl:otherwise>
-		<xsl:comment>body matter </xsl:comment>
+		<xsl:comment>TEI body matter </xsl:comment>
 		<xsl:call-template name="startHook"/>
 		<xsl:variable name="ident">
 		  <xsl:apply-templates mode="ident" select="."/>
@@ -2016,7 +2212,7 @@ of this software, even if advised of the possibility of such damage.
 		<xsl:apply-templates select="tei:text/tei:body"/>
 	      </xsl:otherwise>
 	    </xsl:choose>
-	    <xsl:comment>back matter </xsl:comment>
+	    <xsl:comment>TEI back matter </xsl:comment>
 	    <xsl:apply-templates select="tei:text/tei:back"/>
             <xsl:call-template name="printNotes"/>
             <xsl:call-template name="htmlFileBottom"/>
@@ -2070,7 +2266,7 @@ of this software, even if advised of the possibility of such damage.
     <xsl:apply-templates select="tei:sourceDoc"/>
     <xsl:choose>
       <xsl:when test="tei:text/tei:group">
-	<xsl:apply-templates select="tei:text/tei:group"/>
+	<xsl:apply-templates select="tei:text/*"/>
       </xsl:when>
       <xsl:when test="$filePerPage='true'">
 	<xsl:variable name="pass1">	 
@@ -2122,7 +2318,7 @@ of this software, even if advised of the possibility of such damage.
 	</xsl:choose>
       </xsl:when>
       <xsl:otherwise>
-	<!-- front matter -->
+	<xsl:comment>TEI front</xsl:comment>
 	<xsl:apply-templates select="tei:text/tei:front"/>
 	<xsl:if test="$autoToc='true' and (descendant::tei:div or descendant::tei:div1) and not(descendant::tei:divGen[@type='toc'])">
 	  <h2>
@@ -2130,12 +2326,12 @@ of this software, even if advised of the possibility of such damage.
 	  </h2>
 	  <xsl:call-template name="mainTOC"/>
 	</xsl:if>
-	<!-- main text -->
+	<xsl:comment>TEI body</xsl:comment>
 	<xsl:apply-templates select="tei:text/tei:body"/>
+	<xsl:comment>TEI back</xsl:comment>
+	<xsl:apply-templates select="tei:text/tei:back"/>
       </xsl:otherwise>
     </xsl:choose>
-    <!-- back matter -->
-    <xsl:apply-templates select="tei:text/tei:back"/>
       <xsl:call-template name="printNotes"/>
   </xsl:template>
 
@@ -2149,7 +2345,7 @@ of this software, even if advised of the possibility of such damage.
       </xsl:call-template>
     </xsl:variable>
     <xsl:if test="$verbose='true'">
-      <xsl:message>Opening file <xsl:value-of select="$outName"/></xsl:message>
+      <xsl:message>Opening file (pageperfile) <xsl:value-of select="$outName"/></xsl:message>
     </xsl:if>
     
     <xsl:result-document href="{$outName}">
@@ -2166,7 +2362,10 @@ of this software, even if advised of the possibility of such damage.
 	</body>
       </html>
     </xsl:result-document>
-    <xsl:if test="@facs">
+    <xsl:choose>
+      <xsl:when test="not(@facs)"/>
+      <xsl:when test="starts-with(@facs,'unknown:')"/>
+      <xsl:otherwise>
       <xsl:variable name="outNameFacs">
 	<xsl:call-template name="outputChunkName">
 	  <xsl:with-param name="ident">
@@ -2190,7 +2389,8 @@ of this software, even if advised of the possibility of such damage.
 	  </body>
 	</html>
       </xsl:result-document>      
-    </xsl:if>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="html:PAGEBREAK" mode="copy"/>
@@ -2213,7 +2413,7 @@ of this software, even if advised of the possibility of such damage.
       <div class="stdfooter autogenerated">
          <xsl:if test="$linkPanel='true'">
             <div class="footer">
-	      <xsl:comment>standard links to project, instiution etc</xsl:comment>
+	      <xsl:comment>standard links to project, institution etc</xsl:comment>
                <xsl:if test="not($parentURL='')">
 		 <a class="{$style}" href="{$parentURL}">
 		   <xsl:value-of select="$parentWords"/>
@@ -2253,6 +2453,7 @@ of this software, even if advised of the possibility of such damage.
             <xsl:value-of select="$date"/>
             <br/>
             <xsl:call-template name="copyrightStatement"/>
+	    <xsl:if test="$generationComment='true'">
             <xsl:comment>
                <xsl:text>
 	  Generated </xsl:text>
@@ -2263,7 +2464,7 @@ of this software, even if advised of the possibility of such damage.
                <xsl:text> using XSLT stylesheets version </xsl:text>
 	       <xsl:value-of select="tei:stylesheetVersion(/)"/>
 	       based on <xsl:value-of select="$teixslHome"/>
-	       on <xsl:call-template name="whatsTheDate"/>.
+	       on <xsl:sequence select="tei:whatsTheDate()"/>.
 	       <xsl:choose>
 		 <xsl:when test="$useFixedDate='true'">
 		   <xsl:value-of
@@ -2276,6 +2477,7 @@ of this software, even if advised of the possibility of such damage.
 		 </xsl:otherwise>
 	       </xsl:choose>
             </xsl:comment>
+	    </xsl:if>
          </address>
       </div>
   </xsl:template>
@@ -2314,15 +2516,19 @@ of this software, even if advised of the possibility of such damage.
 	     <xsl:with-param name="level">2</xsl:with-param>
 	   </xsl:call-template>
 	   
-
 	   <xsl:if test="$showTitleAuthor='true'">
 	     <xsl:if test="$verbose='true'">
 	       <xsl:message>displaying author and date</xsl:message>
 	     </xsl:if>
-	     <xsl:call-template name="generateAuthorList"/>
-	     <xsl:sequence select="tei:generateDate(.)"/>
-	     <xsl:sequence select="tei:generateEdition(.)"/>
-	   </xsl:if>
+	     <xsl:call-template name="makeHTMLHeading">
+	       <xsl:with-param name="class">subtitle</xsl:with-param>
+	       <xsl:with-param name="text">
+		 <xsl:call-template name="generateAuthorList"/>
+		 <xsl:sequence select="tei:generateDate(.)"/>
+		 <xsl:sequence select="tei:generateEdition(.)"/>
+	       </xsl:with-param>
+	     </xsl:call-template>
+	     </xsl:if>
 	 </xsl:when>
 	 <xsl:otherwise>
 	   <xsl:call-template name="makeHTMLHeading">
@@ -2488,7 +2694,7 @@ of this software, even if advised of the possibility of such damage.
             <xsl:variable name="depth">
                <xsl:apply-templates mode="depth" select="."/>
             </xsl:variable>
-            <xsl:if test="(number($splitLevel)&gt;number($depth)  or $force='true' or ancestor::tei:TEI/@rend='nosplit')">
+            <xsl:if test="(number($splitLevel)&gt;number($depth)  or $force='true' or ancestor::tei:TEI/tei:match(@rend,'nosplit'))">
                <xsl:for-each select="tei:div[tei:head or $autoHead='true']">
                   <xsl:call-template name="tocEntry">
                      <xsl:with-param name="style" select="$style"/>
@@ -2735,7 +2941,9 @@ of this software, even if advised of the possibility of such damage.
                   <xsl:call-template name="subtoc"/>
                </xsl:if>
                <xsl:call-template name="startHook"/>
-               <xsl:call-template name="doDivBody"/>
+               <xsl:call-template name="makeDivBody">
+		 <xsl:with-param name="depth" select="count(ancestor::tei:div)+1"/>
+	       </xsl:call-template>
                <xsl:call-template name="printNotes"/>
                <xsl:if test="$bottomNavigationPanel='true'">
 		 <xsl:element name="{if ($outputTarget='html5') then 'nav' else 'div'}">
@@ -2790,7 +2998,7 @@ of this software, even if advised of the possibility of such damage.
       <xsl:param name="mode"/>
       <xsl:attribute name="class" select="$alignNavigationPanel"/>
       <xsl:call-template name="generateUpLink"/>
-      <xsl:if test="not(ancestor-or-self::tei:TEI[@rend='nomenu'])">
+      <xsl:if test="not(ancestor-or-self::tei:TEI[tei:match(@rend,'nomenu')])">
 	<xsl:call-template name="previousLink"/>
 	<xsl:call-template name="nextLink"/>
       </xsl:if>

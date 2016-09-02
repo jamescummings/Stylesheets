@@ -13,7 +13,7 @@ Unported License http://creativecommons.org/licenses/by-sa/3.0/
 
 2. http://www.opensource.org/licenses/BSD-2-Clause
 		
-All rights reserved.
+
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -39,15 +39,11 @@ theory of liability, whether in contract, strict liability, or tort
 of this software, even if advised of the possibility of such damage.
 </p>
       <p>Author: See AUTHORS</p>
-      <p>Id: $Id$</p>
+      
       <p>Copyright: 2013, TEI Consortium</p>
     </desc>
   </doc>
 
-  <doc xmlns="http://www.oxygenxml.com/ns/doc/xsl">
-    <desc>[epub] Local mode to rewrite names of graphics inclusions;
-      default is identity transform</desc>
-  </doc>
   <xsl:template match="@*|text()|comment()|processing-instruction()" mode="preflight">
     <xsl:copy-of select="."/>
   </xsl:template>
@@ -85,7 +81,9 @@ of this software, even if advised of the possibility of such damage.
   <xsl:template match="tei:pb[@facs]" mode="preflight">
     <xsl:copy>
       <xsl:choose>
-	<xsl:when test="@rend='none'">
+	<xsl:when test="starts-with(@facs,'tcp:')"/>
+	<xsl:when test="starts-with(@facs,'unknown:')"/>
+	<xsl:when test="tei:match(@rend,'none')">
           <xsl:copy-of select="@*"/>
 	</xsl:when>
         <xsl:when test="$fixgraphicsurl='true'">

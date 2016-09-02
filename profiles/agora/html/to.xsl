@@ -33,12 +33,13 @@
 
 <!-- set stylesheet parameters -->
    <xsl:param name="numberHeadings">false</xsl:param>
+  <xsl:param name="numberBackHeadings"></xsl:param>
    <xsl:param name="numberFigures">false</xsl:param>
    <xsl:param name="numberTables">false</xsl:param>
   <xsl:param name="numberParagraphs">false</xsl:param>
   <xsl:param name="generateParagraphIDs">true</xsl:param>
   <xsl:param name="autoToc">true</xsl:param>
-  <xsl:param name="cssInlineFile">../profiles/agora/html/tei-agora.css</xsl:param>
+  <xsl:param name="cssInlineFiles">../profiles/agora/html/tei-agora.css</xsl:param>
   <xsl:param name="cssFile"/>
   <xsl:param name="institution">AGORA Project</xsl:param>
    <xsl:param name="bottomNavigationPanel">false</xsl:param>
@@ -55,7 +56,8 @@
 
 
 <xsl:template name="copyrightStatement">
-This page is made available under the Creative Commons General Public License "Attribution, Non-Commercial, Share-Alike", version 3.0 (CCPL BY-NC-SA) 
+<xsl:value-of select="//tei:sourceDesc/tei:title[@level='a']"/>
+<xsl:text>This page is made available under the Creative Commons General Public License "Attribution, Non-Commercial, Share-Alike", version 3.0 (CCPL BY-NC-SA) </xsl:text>
 </xsl:template>
 
 
@@ -72,22 +74,22 @@ This page is made available under the Creative Commons General Public License "A
 <xsl:template match="tei:pb"/>
     
 <!-- deal with weird @rend values -->
-<xsl:template match="tei:hi[@rend='del']">
+<xsl:template match="tei:hi[tei:match(@rend,'del')]">
 <s><xsl:apply-templates/></s>
 </xsl:template>
-<xsl:template match="tei:hi[@rend='ul2']">
+<xsl:template match="tei:hi[tei:match(@rend,'ul2')]">
 <u style="border-bottom: 1px double #000"><xsl:apply-templates/></u>
 </xsl:template>
 
-<xsl:template match="tei:hi[@rend='ulw']">
+<xsl:template match="tei:hi[tei:match(@rend,'ulw')]">
 <u style="border-bottom: 1px dotted #000"><xsl:apply-templates/></u>
 </xsl:template>
 
-<xsl:template match="tei:hi[@rend='shadow']">
+<xsl:template match="tei:hi[tei:match(@rend,'shadow')]">
 <u style="background-color: gray"><xsl:apply-templates/></u>
 </xsl:template>
 
-<xsl:template match="tei:lb[@rend='indent']">
+<xsl:template match="tei:lb[tei:match(@rend,'indent')]">
 <br/><xsl:text>    </xsl:text>
 </xsl:template>
 
@@ -128,29 +130,7 @@ This page is made available under the Creative Commons General Public License "A
     </div>  
   </xsl:template>
 
-<!-- replace template for listbibl 
-<xsl:template match="tei:listBibl">
- <ul class="listBibl">
-        <xsl:for-each select="tei:bibl|tei:biblItem">
-          <li>
-	    <xsl:choose>
-	    <xsl:when test="@n">
-	      <xsl:attribute name="id">
-		<xsl:value-of select="@n"/>
-</xsl:attribute></xsl:when>
-<xsl:otherwise>
-            <xsl:call-template name="makeAnchor">
-              <xsl:with-param name="name">
-                <xsl:apply-templates mode="ident" select="."/>
-              </xsl:with-param>
-            </xsl:call-template>
-</xsl:otherwise></xsl:choose>
-            <xsl:apply-templates select="."/>
-          </li>
-        </xsl:for-each>
-      </ul>
-</xsl:template>
--->
+
   <xsl:template match="tei:div[@type='abstract']">
     <div class="abstract">
       <xsl:if test='not(tei:head)'>
